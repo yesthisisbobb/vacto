@@ -30,6 +30,7 @@ class Vacto extends StatelessWidget {
         "/register": (context) => Register(),
       },
       debugShowMaterialGrid: false,
+      debugShowCheckedModeBanner: false,
     );
   }
 }
