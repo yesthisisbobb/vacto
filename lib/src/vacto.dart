@@ -23,6 +23,7 @@ class Vacto extends StatelessWidget {
     return MaterialApp(
       title: 'Vacto',
       theme: ThemeData(
+        fontFamily: "HKGrotesk",
         primarySwatch: vactoColor,
       ),
       routes: {

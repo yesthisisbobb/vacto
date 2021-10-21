@@ -16,12 +16,84 @@ Widget registerInputs(BuildContext context){
     child: Center(
       child: FractionallySizedBox(
         widthFactor: 0.7,
-        child: ListView(
-          children: [
-            loginRedirect(context)
-          ],
+        child: Card(
+          child: FractionallySizedBox(
+            widthFactor: 0.83,
+            child: ListView(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(bottom: 24.0),
+                ),
+                Text("Hello and Welcome!",
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
+                Text("First things first, let's set up your credentials",
+                  style: TextStyle(
+                    fontSize: 24
+                  ),
+                ),
+                Table(
+                  columnWidths: <int, TableColumnWidth>{
+                    0: FlexColumnWidth(1.0),
+                    1: FlexColumnWidth(0.5),
+                    2: FlexColumnWidth(2.0)
+                  },
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  children: <TableRow>[
+                    TableRow(
+                      children: [Text("Name:"), Container(), TextField()],
+                    ),
+                    TableRow(
+                      children: [Text("Email:"), Container(), TextField()],
+                    ),
+                    TableRow(
+                      children: [Text("Password:"), Container(), TextField()],
+                    ),
+                    TableRow(
+                      children: [
+                        Text("Confirm Password:"),
+                        Container(),
+                        TextField()
+                      ],
+                    )
+                  ],
+                ),
+                Container(margin: EdgeInsets.only(bottom: 12.0),),
+                continueButton(context),
+                loginRedirect(context)
+              ],
+            ),
+          ),
         ),
+        
+        
       )
+    ),
+  );
+}
+
+Widget continueButton(BuildContext context){
+  return Align(
+    alignment: Alignment.centerRight,
+    child: ElevatedButton(
+      onPressed: () {},
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("Continue"),
+          Icon(
+            Icons.arrow_right,
+            color: Colors.white,
+            size: 20.0,
+          )
+        ],
+      ),
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+      ),
     ),
   );
 }
