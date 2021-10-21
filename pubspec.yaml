@@ -83,11 +83,26 @@ flutter:
       fonts:
         - asset: assets/fonts/hkgrotesk/HKGrotesk-Light.ttf
           weight: 300
+        - asset: assets/fonts/hkgrotesk/HKGrotesk-LightItalic.ttf
+          weight: 300
+          style: italic
         - asset: assets/fonts/hkgrotesk/HKGrotesk-Regular.ttf
           weight: 400
+        - asset: assets/fonts/hkgrotesk/HKGrotesk-RegularItalic.ttf
+          weight: 400
+          style: italic
         - asset: assets/fonts/hkgrotesk/HKGrotesk-Medium.ttf
           weight: 500
+        - asset: assets/fonts/hkgrotesk/HKGrotesk-MediumItalic.ttf
+          weight: 500
+          style: italic
         - asset: assets/fonts/hkgrotesk/HKGrotesk-SemiBold.ttf
           weight: 600
+        - asset: assets/fonts/hkgrotesk/HKGrotesk-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
         - asset: assets/fonts/hkgrotesk/HKGrotesk-Bold.ttf
           weight: 700
+        - asset: assets/fonts/hkgrotesk/HKGrotesk-BoldItalic.ttf
+          weight: 700
+          style: italic
