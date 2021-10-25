@@ -88,7 +88,7 @@ flutter:
           style: italic
         - asset: assets/fonts/hkgrotesk/HKGrotesk-Regular.ttf
           weight: 400
-        - asset: assets/fonts/hkgrotesk/HKGrotesk-RegularItalic.ttf
+        - asset: assets/fonts/hkgrotesk/HKGrotesk-Italic.ttf
           weight: 400
           style: italic
         - asset: assets/fonts/hkgrotesk/HKGrotesk-Medium.ttf
