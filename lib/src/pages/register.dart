@@ -19,52 +19,10 @@ Widget registerInputs(BuildContext context){
         child: Card(
           child: FractionallySizedBox(
             widthFactor: 0.83,
+            heightFactor: 0.95,
             child: ListView(
-              children: [
-                Container(
-                  margin: EdgeInsets.only(bottom: 24.0),
-                ),
-                Text("Hello and Welcome!",
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold
-                  ),
-                ),
-                Text("First things first, let's set up your credentials",
-                  style: TextStyle(
-                    fontSize: 24
-                  ),
-                ),
-                Table(
-                  columnWidths: <int, TableColumnWidth>{
-                    0: FlexColumnWidth(1.0),
-                    1: FlexColumnWidth(0.5),
-                    2: FlexColumnWidth(2.0)
-                  },
-                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                  children: <TableRow>[
-                    TableRow(
-                      children: [Text("Name:"), Container(), TextField()],
-                    ),
-                    TableRow(
-                      children: [Text("Email:"), Container(), TextField()],
-                    ),
-                    TableRow(
-                      children: [Text("Password:"), Container(), TextField()],
-                    ),
-                    TableRow(
-                      children: [
-                        Text("Confirm Password:"),
-                        Container(),
-                        TextField()
-                      ],
-                    )
-                  ],
-                ),
-                Container(margin: EdgeInsets.only(bottom: 12.0),),
-                continueButton(context),
-                loginRedirect(context)
-              ],
+              padding: EdgeInsets.only(top: 38.0, bottom: 30.0),
+              children: stepOne(context)
             ),
           ),
         ),
@@ -73,6 +31,49 @@ Widget registerInputs(BuildContext context){
       )
     ),
   );
+}
+
+List<Widget> stepOne(BuildContext context){
+  return [
+    Text(
+      "Hello and Welcome!",
+      style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+    ),
+    Text(
+      "First things first, let's set up your credentials",
+      style: TextStyle(fontSize: 24),
+    ),
+    Table(
+      columnWidths: <int, TableColumnWidth>{
+        0: FlexColumnWidth(1.0),
+        1: FlexColumnWidth(0.5),
+        2: FlexColumnWidth(2.0)
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      children: <TableRow>[
+        TableRow(
+          children: [Text("Name:"), Container(), TextField()],
+        ),
+        TableRow(
+          children: [Text("Email:"), Container(), TextField()],
+        ),
+        TableRow(
+          children: [Text("Password:"), Container(), TextField()],
+        ),
+        TableRow(
+          children: [Text("Confirm Password:"), Container(), TextField()],
+        )
+      ],
+    ),
+    Container(
+      margin: EdgeInsets.only(bottom: 20.0),
+    ),
+    continueButton(context),
+    Container(
+      margin: EdgeInsets.only(bottom: 12.0),
+    ),
+    loginRedirect(context)
+  ];
 }
 
 Widget continueButton(BuildContext context){

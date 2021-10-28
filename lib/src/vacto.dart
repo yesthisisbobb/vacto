@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pages/login.dart';
 import 'pages/register.dart';
+import 'pages/mainmenu.dart';
 
 // TODO: Move these codes to someplace else
 Map<int, Color> vactoBlue = {
@@ -27,8 +28,9 @@ class Vacto extends StatelessWidget {
         primarySwatch: vactoColor,
       ),
       routes: {
-        "/": (context) => Login(),
+        "/": (context) => MainMenu(),
         "/register": (context) => Register(),
+        "/main": (context) => MainMenu(),
       },
       debugShowMaterialGrid: false,
       debugShowCheckedModeBanner: false,
