@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:vacto/src/blocs/variables_provider.dart';
 import 'pages/login.dart';
 import 'pages/register.dart';
 import 'pages/mainmenu.dart';
+import 'pages/play.dart';
 
 // TODO: Move these codes to someplace else
 Map<int, Color> vactoBlue = {
@@ -21,19 +23,23 @@ MaterialColor vactoColor = MaterialColor(0xFF003399, vactoBlue);
 class Vacto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Vacto',
-      theme: ThemeData(
-        fontFamily: "HKGrotesk",
-        primarySwatch: vactoColor,
+    return VariablesProvider(
+      child: MaterialApp(
+        title: 'Vacto',
+        theme: ThemeData(
+          fontFamily: "HKGrotesk",
+          primarySwatch: vactoColor,
+        ),
+        routes: {
+          "/": (context) => MainMenu(),
+          "/login": (context) => Login(),
+          "/register": (context) => Register(),
+          "/main": (context) => MainMenu(),
+          "/play": (context) => Play()
+        },
+        debugShowMaterialGrid: false,
+        debugShowCheckedModeBanner: false,
       ),
-      routes: {
-        "/": (context) => MainMenu(),
-        "/register": (context) => Register(),
-        "/main": (context) => MainMenu(),
-      },
-      debugShowMaterialGrid: false,
-      debugShowCheckedModeBanner: false,
     );
   }
 }

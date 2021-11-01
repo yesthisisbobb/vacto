@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../blocs/variables_provider.dart';
+
 class MainMenu extends StatefulWidget {
   MainMenu({Key key}) : super(key: key);
 
@@ -8,16 +10,20 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
+  // TODO: make live feed of people, prolly on left side of screen
+
   @override
   Widget build(BuildContext context) {
+    VariablesBloc vBloc = VariablesProvider.of(context);
+
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         child: Row(
           children: [
-            Expanded(flex: 3, child: leftContent(context)),
-            Expanded(flex: 7, child: rightContent(context))
+            Expanded(flex: 3, child: leftContent(context, vBloc)),
+            Expanded(flex: 7, child: rightContent(context, vBloc))
           ],
         ),
       ),
@@ -25,165 +31,400 @@ class _MainMenuState extends State<MainMenu> {
   }
 }
 
-// class MainMenu extends StatelessWidget {
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Container(
-//         width: MediaQuery.of(context).size.width,
-//         height: MediaQuery.of(context).size.height,
-//         child: Row(
-//           children: [
-//             Expanded(
-//               flex: 3,
-//               child: leftContent(context)
-//             ),
-//             Expanded(
-//               flex: 7,
-//               child: rightContent(context)
-//             )
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-Widget leftContent(BuildContext context){
+Widget leftContent(BuildContext context, VariablesBloc vBloc) {
   return Container(
     margin: EdgeInsets.zero,
     child: Align(
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          Image(
-            image: AssetImage("vacto_full.png"),
-            width: 220,
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Card(
-            borderOnForeground: true,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(70.0),
-                    bottomRight: Radius.circular(70.0))),
-            shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
-            elevation: 5.0,
-            child: Container(
-              padding: EdgeInsets.all(30.0),
-              child: Center(
-                child: Column(
-                  children: [
-                    Container(
-                      child: CircleAvatar(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        radius: 60,
-                      ),
-                    ),
-                    SizedBox(height: 12.0,),
-                    Container(
-                      child: Image(
-                        image: AssetImage("tiers/tier3.png"),
-                        height: 32,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 8.0,
-                    ),
-                    Text(
-                      "Joseph Emmerich Stoltz",
-                      style: TextStyle(
-                          fontSize: 22.0, fontWeight: FontWeight.w500),
-                    ),
-                    Container(
-                      child: Text("[Bendera] [Ranking di negara]"),
-                    ),
-                    Container(
-                      child: Text("[Showcase Achievement]"),
-                    ),
-                    SizedBox(
-                      height: 12.0,
-                    ),
-                    Container(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0)
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            SizedBox(
+              height: 24.0,
+            ),
+            Image(
+              image: AssetImage("vacto_full.png"),
+              width: 220,
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Card(
+              borderOnForeground: true,
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(70.0),
+                      bottomRight: Radius.circular(70.0))),
+              shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
+              elevation: 5.0,
+              child: Container(
+                padding: EdgeInsets.all(30.0),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(
+                              'https://www.woolha.com/media/2020/03/eevee.png',
+                              scale: 0.5),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          radius: 60,
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text("Logout"),
-                            SizedBox(width: 5.0,),
-                            Icon(Icons.logout),
-                          ],
-                        ),
-                        onPressed: () {},
                       ),
-                    )
-                  ],
+                      SizedBox(
+                        height: 12.0,
+                      ),
+                      Container(
+                        child: Image(
+                          image: AssetImage("tiers/tier7.png"),
+                          height: 32,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 8.0,
+                      ),
+                      Text(
+                        "Joseph Emmerich Stoltz",
+                        style: TextStyle(
+                            fontSize: 22.0, fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center,
+                      ),
+                      Container(
+                        child: Text("[Bendera] [Ranking di negara]"),
+                      ),
+                      Container(
+                        child: Text("[Showcase Achievement]"),
+                      ),
+                      SizedBox(
+                        height: 12.0,
+                      ),
+                      Container(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 18.0, vertical: 12.0)),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("Logout"),
+                              SizedBox(
+                                width: 5.0,
+                              ),
+                              Icon(Icons.logout),
+                            ],
+                          ),
+                          onPressed: () {
+                            Navigator.pushNamed(context, "/login");
+                          },
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      )
-    ),
+          ],
+        )),
   );
 }
 
-Widget rightContent(BuildContext context){
+Widget rightContent(BuildContext context, VariablesBloc vBloc) {
   return Container(
     padding: EdgeInsets.all(20.0),
     child: GridView.count(
       crossAxisCount: 3,
       mainAxisSpacing: 20.0,
       crossAxisSpacing: 20.0,
-      children: menus(context),
+      children: menus(context, vBloc),
     ),
   );
 }
 
-List<Widget> menus(BuildContext context){
+List<Widget> menus(BuildContext context, VariablesBloc vBloc) {
   return [
-    menuItem(context, "menu_icon/play.png", "Play", (){
-      print("playtest");
+    menuItem(context, vBloc, "menu_icon/play.png", "Play", () {
+      showModalBottomSheet(
+          context: context,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
+          ),
+          builder: (context) {
+            return Container(
+              padding: EdgeInsets.all(50.0),
+              child: Container(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Choose Game Mode",
+                        style: TextStyle(
+                            fontSize: 30, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 24.0,
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Column(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        padding: EdgeInsets.all(42.0),
+                                      ),
+                                      child: Image.asset(
+                                        "menu_icon/gamemode-normal.png",
+                                        fit: BoxFit.cover,
+                                      ),
+                                      onPressed: () {
+                                        vBloc.isGameModeTimed = false;
+                                        showModalBottomSheet(
+                                            context: context,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.only(
+                                                    topLeft:
+                                                        Radius.circular(30),
+                                                    topRight:
+                                                        Radius.circular(30))),
+                                            builder: (context) {
+                                              return difficultySelector(
+                                                  context, vBloc);
+                                            });
+                                      }),
+                                ),
+                                
+                                SizedBox(
+                                  height: 12.0,
+                                ),
+                                Text(
+                                  "Standard",
+                                  style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primaryVariant),
+                                )
+                              ],
+                            ),
+                            SizedBox(
+                              width: 24.0,
+                            ),
+                            Column(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        padding: EdgeInsets.all(42.0),
+                                      ),
+                                      child: Image.asset(
+                                        "menu_icon/gamemode-timed.png",
+                                        fit: BoxFit.cover,
+                                      ),
+                                      onPressed: () {
+                                        vBloc.isGameModeTimed = true;
+                                        showModalBottomSheet(
+                                            context: context,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.only(
+                                                    topLeft:
+                                                        Radius.circular(30),
+                                                    topRight:
+                                                        Radius.circular(30))),
+                                            builder: (context) {
+                                              return difficultySelector(
+                                                  context, vBloc);
+                                            });
+                                      }),
+                                ),
+                                SizedBox(
+                                  height: 12.0,
+                                ),
+                                Text(
+                                  "Timed",
+                                  style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primaryVariant),
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          });
     }),
-    menuItem(context, "menu_icon/challenge.png", "Challenge Another Player", () {
+    menuItem(context, vBloc, "menu_icon/challenge.png", "Challenge Another Player", () {
       print("playtest2");
     }),
-    menuItem(context, "menu_icon/leaderboard.png", "Leaderboard", () {
+    menuItem(context, vBloc, "menu_icon/add.png", "Add News", () {
+      print("playtest2");
+    }),
+    menuItem(context, vBloc, "menu_icon/leaderboard.png", "Leaderboard", () {
       print("playtest3");
     }),
-    menuItem(context, "menu_icon/profile.png", "Profile", () {
+    menuItem(context, vBloc, "menu_icon/profile.png", "Profile", () {
       print("playtest4");
     }),
-    menuItem(context, "menu_icon/settings.png", "Settings", () {
+    menuItem(context, vBloc, "menu_icon/settings.png", "Settings", () {
       print("playtest5");
     }),
-    menuItem(context, "menu_icon/view-data.png", "View Data", () {
+    menuItem(context, vBloc, "menu_icon/view-data.png", "View Data", () {
       print("playtest6");
     }),
-    menuItem(context, "menu_icon/verify.png", "Verify Questions", () {
+    menuItem(context, vBloc, "menu_icon/verify.png", "Verify Questions", () {
       print("playtest7");
     }),
   ];
 }
 
-Widget menuItem(BuildContext context, String path, String text, Function ontap){
+Widget difficultySelector(BuildContext context, VariablesBloc vBloc){
+  double buttonwidth = 120;
+  EdgeInsets padding = EdgeInsets.symmetric(vertical: 0, horizontal: 28.0);
+  TextStyle textstyle = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w300
+  );
+
+  return Container(
+    padding: EdgeInsets.all(50.0),
+    child: Column(
+      children: [
+        Text(
+          "Choose your Difficulty",
+          style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(
+          height: 24.0,
+        ),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: padding,
+                    ),
+                    child: Container(
+                      width: buttonwidth,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset("difficulty/easy_white.png",
+                            height: 40,
+                          ),
+                          SizedBox(
+                            width: 10.0,
+                          ),
+                          Text(
+                            "Easy",
+                            style: textstyle,
+                          ),
+                        ],
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/play");
+                    }),
+              ),
+              SizedBox(
+                height: 12.0,
+              ),
+              Expanded(
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: padding,
+                    ),
+                    child: Container(
+                      width: buttonwidth,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            "difficulty/normal_white.png",
+                            height: 40,
+                          ),
+                          SizedBox(
+                            width: 10.0,
+                          ),
+                          Text(
+                            "Normal",
+                            style: textstyle,
+                          ),
+                        ],
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/play");
+                    }),
+              ),
+              SizedBox(
+                height: 12.0,
+              ),
+              Expanded(
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: padding,
+                    ),
+                    child: Container(
+                      width: buttonwidth,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            "difficulty/hard_white.png",
+                            height: 40,
+                          ),
+                          SizedBox(
+                            width: 10.0,
+                          ),
+                          Text(
+                            "Hard",
+                            style: textstyle,
+                          ),
+                        ],
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, "/play");
+                    }),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget menuItem(BuildContext context, VariablesBloc vBloc, String path,
+    String text, Function ontap) {
   return InkWell(
     hoverColor: Theme.of(context).colorScheme.secondary,
     highlightColor: Theme.of(context).colorScheme.secondaryVariant,
+    focusColor: Theme.of(context).colorScheme.primaryVariant,
     borderRadius: BorderRadius.all(Radius.circular(35.0)),
     child: Container(
       child: Card(
         color: Theme.of(context).colorScheme.primary,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(30.0))
-        ),
+            borderRadius: BorderRadius.all(Radius.circular(30.0))),
         child: Container(
           padding: EdgeInsets.all(22.0),
           alignment: Alignment.topLeft,
@@ -191,7 +432,10 @@ Widget menuItem(BuildContext context, String path, String text, Function ontap){
             children: [
               Text(
                 text,
-                style: TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                    fontSize: 32.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
                 textAlign: TextAlign.left,
               ),
               Align(

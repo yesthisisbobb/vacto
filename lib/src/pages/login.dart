@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 class Login extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
-    var screenSize = MediaQuery.of(context).size;
-
     return Scaffold(
       body: loginInputs(context)
     );

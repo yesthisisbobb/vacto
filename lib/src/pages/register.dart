@@ -108,7 +108,7 @@ Widget loginRedirect(BuildContext context){
       TextButton(
         child: Text("Return to login page"),
         onPressed: (){
-          Navigator.pop(context);
+          Navigator.pushNamed(context, "/login");
         },
       )
     ],
