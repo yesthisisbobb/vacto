@@ -1,6 +1,6 @@
 # vacto
 
-A new Flutter project.
+Vacto.
 
 ## Getting Started
 
