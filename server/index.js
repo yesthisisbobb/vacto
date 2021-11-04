@@ -73,8 +73,34 @@ const uploads = multer({
 
 // =========== MAIN CODE AREA ===========
 
+// ------ GET ALL COUNTRIES ------ //
+app.get("/api/countries/get/all", async (req, res) => {
+    let query = `select name, abv from countries`;
+    let getCountries = await executeQuery(conn, query);
+    if (getCountries.length > 0) {
+        return res.status(200).send(getCountries);
+    }
+    else{ 
+        return res.status(500).send("Something went wrong");
+    }
+});
+
+// ------ GET A COUNTRY ------ //
+app.get("/api/countries/get/:country", async (req, res) => {
+    // Icons from https://flagpedia.net
+    let country = req.params.country;
+    let query = `select name, abv from countries WHERE abv = '${country}'`;
+    let getCountry = await executeQuery(conn, query);
+    if (getCountry.length > 0) {
+        return res.status(200).send(getCountry);
+    }
+    else {
+        return res.status(404).send("Country not found");
+    }
+});
+
 // ------ USER REGISTER ------ //
-app.post("/api/user-register", async (req, res) => {
+app.post("/api/user/register", async (req, res) => {
     let username = req.body.email;
     let password = req.body.password;
     let email = req.body.email;
@@ -123,7 +149,7 @@ app.post("/api/user-register", async (req, res) => {
 });
 
 // ------ USER LOGIN ------ //
-app.post("/api/user-login", async (req, res) => {
+app.post("/api/user/login", async (req, res) => {
     let email = req.body.email;
     let password = req.body.password;
 

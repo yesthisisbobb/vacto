@@ -28,7 +28,7 @@ class LoginBloc with Validation{
     final email = _emailController.value;
     final password = _passwordController.value;
     
-    var res = await http.post(Uri.parse("http://localhost:3000/api/user-login"),
+    var res = await http.post(Uri.parse("http://localhost:3000/api/user/login"),
       body: {
         "email": email,
         "password": password
