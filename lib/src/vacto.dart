@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vacto/src/blocs/login_provider.dart';
+import 'package:vacto/src/blocs/register_provider.dart';
 import 'package:vacto/src/blocs/variables_provider.dart';
 import 'pages/login.dart';
 import 'pages/register.dart';
@@ -25,25 +26,26 @@ class Vacto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return VariablesProvider(
-      child: LoginProvider(
-        child: MaterialApp(
-          title: 'Vacto',
-          theme: ThemeData(
-            fontFamily: "HKGrotesk",
-            primarySwatch: vactoColor,
+      child: RegisterProvider(
+        child: LoginProvider(
+          child: MaterialApp(
+            title: 'Vacto',
+            theme: ThemeData(
+              fontFamily: "HKGrotesk",
+              primarySwatch: vactoColor,
+            ),
+            routes: {
+              "/": (context) => Register(),
+              "/login": (context) => Login(),
+              "/register": (context) => Register(),
+              "/main": (context) => MainMenu(),
+              "/play": (context) => Play()
+            },
+            debugShowMaterialGrid: false,
+            debugShowCheckedModeBanner: false,
           ),
-          routes: {
-            "/": (context) => Register(),
-            "/login": (context) => Login(),
-            "/register": (context) => Register(),
-            "/main": (context) => MainMenu(),
-            "/play": (context) => Play()
-          },
-          debugShowMaterialGrid: false,
-          debugShowCheckedModeBanner: false,
         ),
-      ),
+      )
     );
-    
   }
 }

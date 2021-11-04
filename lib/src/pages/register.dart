@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:vacto/src/blocs/register_bloc.dart';
+import 'package:vacto/src/blocs/register_provider.dart';
+
 class Register extends StatefulWidget {
   Register({Key key}) : super(key: key);
 
@@ -9,13 +12,16 @@ class Register extends StatefulWidget {
   _RegisterState createState() => _RegisterState();
 }
 class _RegisterState extends State<Register> {
-  int _idx = 0, _idxM = 2;
+  RegisterBloc rBloc;
+  int _idx = 0, _idxM = 1;
   final _dateController = TextEditingController();
+  String dob = "";
   String gender = "";
   String dropdownValue = "ID";
 
   @override
   Widget build(BuildContext context) {
+    rBloc = RegisterProvider.of(context);
     return Scaffold(
       body: registerInputs(context),
     );
@@ -50,7 +56,14 @@ class _RegisterState extends State<Register> {
                 },
                 onStepContinue: () {
                   if (_idx == _idxM) {
-                    Navigator.pushNamed(context, "/somewhere");
+                    // Navigator.pushNamed(context, "/somewhere");
+                    print("made it here");
+                    rBloc.addExtras("$dropdownValue|$gender");
+                    print("made it here 2");
+                    if(rBloc.extrasStream != null){
+                      rBloc.submit();
+                    }
+                    print("made it here 3");
                   } else {
                     setState(() {
                       _idx += 1;
@@ -134,9 +147,15 @@ class _RegisterState extends State<Register> {
                     textAlign: TextAlign.start,
                   ),
                   Container(),
-                  TextField(
-                    decoration: InputDecoration(hintText: "John Doe"),
-                  )
+                  StreamBuilder(
+                    stream: rBloc.nameStream,
+                    builder: (context, snapshot){
+                      return TextField(
+                        decoration: InputDecoration(hintText: "John Doe"),
+                        onChanged: rBloc.changeName,
+                      );
+                    }
+                  ),
                 ],
               ),
               TableRow(
@@ -146,9 +165,15 @@ class _RegisterState extends State<Register> {
                     textAlign: TextAlign.start,
                   ),
                   Container(),
-                  TextField(
-                    decoration: InputDecoration(hintText: "johndoe@example.com"),
-                  )
+                  StreamBuilder(
+                    stream: rBloc.emailStream,
+                    builder: (context, snapshot){
+                      return TextField(
+                        decoration: InputDecoration(hintText: "johndoe@example.com"),
+                        onChanged: rBloc.changeEmail,
+                      );
+                    }
+                  ),
                 ],
               ),
               TableRow(
@@ -158,10 +183,16 @@ class _RegisterState extends State<Register> {
                     textAlign: TextAlign.start,
                   ),
                   Container(),
-                  TextField(
-                    obscureText: true,
-                    decoration: InputDecoration(hintText: "******"),
-                  )
+                  StreamBuilder(
+                    stream: rBloc.passwordStream,
+                    builder: (context, snapshot){
+                      return TextField(
+                        obscureText: true,
+                        decoration: InputDecoration(hintText: "******"),
+                        onChanged: rBloc.changePass,
+                      );
+                    }
+                  ),
                 ],
               ),
               TableRow(
@@ -171,10 +202,16 @@ class _RegisterState extends State<Register> {
                     textAlign: TextAlign.start,
                   ),
                   Container(),
-                  TextField(
-                    obscureText: true,
-                    decoration: InputDecoration(hintText: "******"),
-                  )
+                  StreamBuilder(
+                    stream: rBloc.cpasswordStream,
+                    builder: (context, snapshot){
+                      return TextField(
+                        obscureText: true,
+                        decoration: InputDecoration(hintText: "******"),
+                        onChanged: rBloc.changeCpass,
+                      );
+                    }
+                  ),
                 ],
               )
             ],
@@ -286,25 +323,32 @@ class _RegisterState extends State<Register> {
                     textAlign: TextAlign.start,
                   ),
                   Container(),
-                  TextField(
-                    readOnly: true,
-                    decoration: InputDecoration(hintText: "dd-mm-yyyy"),
-                    controller: _dateController,
-                    onTap: () async{
-                      var date = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(1900),
-                        lastDate: DateTime.now()
+                  StreamBuilder(
+                    stream: rBloc.dobStream,
+                    builder: (context, snapshot){
+                      return TextField(
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          hintText: "dd-mm-yyyy",
+                          errorText: (snapshot.hasError) ? snapshot.error : null,
+                        ),
+                        controller: _dateController,
+                        onTap: () async {
+                          var date = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(1900),
+                              lastDate: DateTime.now());
+                          if (date != null) {
+                            var initDate = date.toString().substring(0, 10);
+                            var splitDate = initDate.split("-");
+                            _dateController.text = "${splitDate[2]}-${splitDate[1]}-${splitDate[0]}";
+                            rBloc.changeDob("${splitDate[2]}-${splitDate[1]}-${splitDate[0]}");
+                          }
+                        }
                       );
-                      if(date != null) {
-                        var initDate = date.toString().substring(0, 10);
-                        var splitDate = initDate.split("-");
-                        _dateController.text = "${splitDate[2]}-${splitDate[1]}-${splitDate[0]}";
-                      }
-                    }
-                  )
-                  
+                    } 
+                  ),
                 ],
               ),
               TableRow(
@@ -324,7 +368,6 @@ class _RegisterState extends State<Register> {
                         onChanged: (value) {
                           setState(() {
                             gender = value;
-                            print(gender);
                           });
                         }
                       ),
@@ -335,7 +378,6 @@ class _RegisterState extends State<Register> {
                         onChanged: (value) {
                           setState(() {
                             gender = value;
-                            print(gender);
                           });
                         }
                       ),
@@ -346,7 +388,6 @@ class _RegisterState extends State<Register> {
                         onChanged: (value) {
                           setState(() {
                             gender = value;
-                            print(gender);
                           });
                         }
                       ),

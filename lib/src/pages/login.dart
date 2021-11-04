@@ -159,8 +159,6 @@ class Login extends StatelessWidget{
   Widget registerRedirect(BuildContext context){
     return Container(
       child: Wrap(
-        // mainAxisAlignment: MainAxisAlignment.center,
-        // crossAxisAlignment: CrossAxisAlignment.center,
         direction: Axis.horizontal,
         alignment: WrapAlignment.center,
         crossAxisAlignment: WrapCrossAlignment.center,
