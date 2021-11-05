@@ -11,13 +11,50 @@ class Register extends StatefulWidget {
   @override
   _RegisterState createState() => _RegisterState();
 }
-class _RegisterState extends State<Register> {
+class _RegisterState extends State<Register> with TickerProviderStateMixin{
   RegisterBloc rBloc;
-  int _idx = 0, _idxM = 1;
+  int _idx = 0, _idxM = 2;
   final _dateController = TextEditingController();
   String dob = "";
-  String gender = "";
+  String gender = "n";
   String dropdownValue = "ID";
+  String role = "n";
+
+  Animation<Color> colorAnimN;
+  AnimationController colorContN;
+  Animation<Color> colorAnimD;
+  AnimationController colorContD;
+
+  @override
+  void initState() {
+    super.initState();
+
+    colorContN = AnimationController(
+      duration: Duration(milliseconds: 200),
+      vsync: this
+    );
+    colorAnimN = ColorTween(
+      begin: Colors.grey,
+      end: Colors.blue[900]
+    ).animate(colorContN)..addListener(() {setState(() {});});
+
+    colorContD =
+        AnimationController(duration: Duration(milliseconds: 200), vsync: this);
+    colorAnimD = ColorTween(begin: Colors.grey, end: Colors.blue[900])
+        .animate(colorContD)
+          ..addListener(() {
+            setState(() {});
+          });
+  }
+
+  void normalRoleSelected(){
+    colorContN.forward();
+    colorContD.reverse();
+  }
+  void dataRoleSelected(){
+    colorContN.reverse();
+    colorContD.forward();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +67,8 @@ class _RegisterState extends State<Register> {
   @override
   void dispose(){
     _dateController.dispose();
+    colorContN.dispose();
+    colorContD.dispose();
     super.dispose();
   }
   
@@ -58,7 +97,7 @@ class _RegisterState extends State<Register> {
                   if (_idx == _idxM) {
                     // Navigator.pushNamed(context, "/somewhere");
                     print("made it here");
-                    rBloc.addExtras("$dropdownValue|$gender");
+                    rBloc.addExtras("$dropdownValue|$gender|$role");
                     print("made it here 2");
                     if(rBloc.extrasStream != null){
                       rBloc.submit();
@@ -86,6 +125,10 @@ class _RegisterState extends State<Register> {
                     title: Text("Details"),
                     content: cardBase(context, stepTwo(context))
                   ),
+                  Step(
+                    title: Text("Role"),
+                    content: cardBase(context, stepThree(context))
+                  )
                 ],
               ),
               SizedBox(height: 50.0,)
@@ -151,7 +194,10 @@ class _RegisterState extends State<Register> {
                     stream: rBloc.nameStream,
                     builder: (context, snapshot){
                       return TextField(
-                        decoration: InputDecoration(hintText: "John Doe"),
+                        decoration: InputDecoration(
+                          hintText: "John Doe",
+                          errorText: (snapshot.hasError) ? snapshot.error.toString() : null,
+                        ),
                         onChanged: rBloc.changeName,
                       );
                     }
@@ -169,7 +215,12 @@ class _RegisterState extends State<Register> {
                     stream: rBloc.emailStream,
                     builder: (context, snapshot){
                       return TextField(
-                        decoration: InputDecoration(hintText: "johndoe@example.com"),
+                        decoration: InputDecoration(
+                          hintText: "johndoe@example.com",
+                          errorText: (snapshot.hasError)
+                              ? snapshot.error.toString()
+                              : null,
+                        ),
                         onChanged: rBloc.changeEmail,
                       );
                     }
@@ -188,7 +239,12 @@ class _RegisterState extends State<Register> {
                     builder: (context, snapshot){
                       return TextField(
                         obscureText: true,
-                        decoration: InputDecoration(hintText: "******"),
+                        decoration: InputDecoration(
+                          hintText: "******",
+                          errorText: (snapshot.hasError)
+                              ? snapshot.error.toString()
+                              : null,
+                        ),
                         onChanged: rBloc.changePass,
                       );
                     }
@@ -207,7 +263,12 @@ class _RegisterState extends State<Register> {
                     builder: (context, snapshot){
                       return TextField(
                         obscureText: true,
-                        decoration: InputDecoration(hintText: "******"),
+                        decoration: InputDecoration(
+                          hintText: "******",
+                          errorText: (snapshot.hasError)
+                              ? snapshot.error.toString()
+                              : null,
+                        ),
                         onChanged: rBloc.changeCpass,
                       );
                     }
@@ -330,7 +391,7 @@ class _RegisterState extends State<Register> {
                         readOnly: true,
                         decoration: InputDecoration(
                           hintText: "dd-mm-yyyy",
-                          errorText: (snapshot.hasError) ? snapshot.error : null,
+                          errorText: (snapshot.hasError) ? snapshot.error.toString() : null,
                         ),
                         controller: _dateController,
                         onTap: () async {
@@ -400,6 +461,91 @@ class _RegisterState extends State<Register> {
           ),
         ),
       ),
+    ];
+  }
+
+  List<Widget> stepThree(BuildContext context){
+    TextStyle kindaBigStyle = TextStyle(
+      fontSize: 26,
+      fontWeight: FontWeight.w500,
+    );
+    TextStyle justItalic = TextStyle(
+      fontStyle: FontStyle.italic,
+    );
+    return [
+      Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          "Last Step!",
+          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+        ),
+      ),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          "Okay! Now onto the last step, choose your role",
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
+      SizedBox(
+        height: 24.0,
+      ),
+      Column(
+        children: [
+          SizedBox(height: 30.0,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.person),
+                    iconSize: 80,
+                    color: colorAnimN.value,
+                    onPressed: () {
+                      setState(() {
+                        role = "n";
+                      });
+                      normalRoleSelected();
+                    },
+                  ),
+                  Text(
+                    "Normal User",
+                    style: kindaBigStyle,
+                  ),
+                  Text("I'm just here to play",
+                    style: justItalic,
+                  )
+                ],
+              ),
+              Column(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.assessment),
+                    iconSize: 80,
+                    color: colorAnimD.value,
+                    onPressed: () {
+                      setState(() {
+                        role = "d";
+                      });
+                      dataRoleSelected();
+                    },
+                  ),
+                  Text("Data Scientist",
+                    style: kindaBigStyle,
+                  ),
+                  Text("I'm here to do sciency stuff",
+                    style: justItalic,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox( height: 30.0, ),
+        ],
+      )
+      
     ];
   }
 
