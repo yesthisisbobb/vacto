@@ -101,18 +101,21 @@ app.get("/api/countries/get/:country", async (req, res) => {
 
 // ------ USER REGISTER ------ //
 app.post("/api/user/register", async (req, res) => {
-    let username = req.body.email;
+    let username = req.body.username;
     let password = req.body.password;
     let email = req.body.email;
     let name = req.body.name;
+    let nationality = req.body.nationality;
     let dob = req.body.dob; // Format dd-mm-yyyy
     let gender = req.body.gender;
+    let role = req.body.role;
 
     let pp = "default.png";
+    let level = 1;
 
-    console.log("Data received with following details:", username, password, email, name, dob, gender);
+    console.log("Data received with following details:", username, password, email, name, nationality, dob, gender, role);
 
-    if (!username || !password || !email || !name || !dob || !gender) return res.status(400).send("One or more field is empty");
+    if (!username || !password || !email || !name || !nationality || !dob || !gender || !role) return res.status(400).send("One or more field is empty");
     
     // ID = Bulan pembuatan (2) + Tanggal pembuatan (2) + Urutan (3)
     let id;
@@ -141,7 +144,7 @@ app.post("/api/user/register", async (req, res) => {
     let checkEmail = await executeQuery(conn, `select email from user where email = '${email}'`);
     if(checkEmail.length > 0) return res.status(400).send("Email has already been used");
 
-    let query = `insert into user values('${id}','${username}','${password}','${email}','${name}',STR_TO_DATE('${dob}', "%d-%m-%Y"),'${gender}', '${pp}')`;
+    let query = `insert into user values('${id}','${username}','${password}','${email}','${name}','${nationality}',STR_TO_DATE('${dob}', "%d-%m-%Y"),'${gender}', '${pp}', ${level}, '${role}')`;
     console.log(`Insert user query: ${query}`);
     
     let registerUser = await executeQuery(conn, query);

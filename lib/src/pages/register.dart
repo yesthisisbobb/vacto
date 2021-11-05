@@ -13,7 +13,7 @@ class Register extends StatefulWidget {
 }
 class _RegisterState extends State<Register> with TickerProviderStateMixin{
   RegisterBloc rBloc;
-  int _idx = 0, _idxM = 2;
+  int _idx = 0, _idxM = 3;
   final _dateController = TextEditingController();
   String dob = "";
   String gender = "n";
@@ -96,13 +96,10 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
                 onStepContinue: () {
                   if (_idx == _idxM) {
                     // Navigator.pushNamed(context, "/somewhere");
-                    print("made it here");
                     rBloc.addExtras("$dropdownValue|$gender|$role");
-                    print("made it here 2");
                     if(rBloc.extrasStream != null){
                       rBloc.submit();
                     }
-                    print("made it here 3");
                   } else {
                     setState(() {
                       _idx += 1;
@@ -115,6 +112,12 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
                   });
                 },
                 steps: [
+                  Step(
+                    title: Text("Username"),
+                    content: Container(
+                      child: cardBase(context, initialStep(context))
+                    ),
+                  ),
                   Step(
                     title: Text("Account"),
                     content: Container(
@@ -152,13 +155,59 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
     );
   }
 
-  List<Widget> stepOne(BuildContext context){
+  List<Widget> initialStep(BuildContext context){
     return [
       Align(
         alignment: Alignment.centerLeft,
         child: Text(
           "Hello and Welcome!",
           style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+        ),
+      ),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          "What should we call you?",
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
+      SizedBox(
+        height: 24.0,
+      ),
+      StreamBuilder(
+        stream: rBloc.usernameStream,
+        builder: (context, snapshot){
+          return TextField(
+            decoration: InputDecoration(
+              hintText: "Your username",
+              errorText: (snapshot.hasError) ? snapshot.error.toString() : null
+            ),
+            onChanged: rBloc.changeUsername,
+          );
+        }
+      ),
+    ];
+  }
+
+  List<Widget> stepOne(BuildContext context){
+    return [
+      Align(
+        alignment: Alignment.centerLeft,
+        child: StreamBuilder(
+          stream: rBloc.usernameStream,
+          builder: (context, snapshot){
+            if(snapshot.hasData){
+              var temp = snapshot.data.toString();
+              return Text( "Hello, $temp!",
+                style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+              );
+            }
+            else{
+              return Text( "Hello, user!",
+                style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+              );
+            }
+          }
         ),
       ),
       Align(
