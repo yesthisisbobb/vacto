@@ -179,6 +179,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
         builder: (context, snapshot){
           return TextField(
             decoration: InputDecoration(
+              border: OutlineInputBorder(),
               hintText: "Your username",
               errorText: (snapshot.hasError) ? snapshot.error.toString() : null
             ),

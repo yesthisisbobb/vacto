@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:vacto/src/blocs/variables_bloc.dart';
 import 'package:vacto/src/mixins/validation.dart';
+import '../classes/User.dart';
 
 import 'dart:async';
 
@@ -23,7 +26,7 @@ class LoginBloc with Validation{
 
   Stream<bool> get submitValid => CombineLatestStream.combine2(_emailController, _passwordController, (a, b) => true);
 
-  submit() async{
+  submit(BuildContext context, VariablesBloc bloc) async{
     final email = _emailController.value;
     final password = _passwordController.value;
     
@@ -39,7 +42,14 @@ class LoginBloc with Validation{
       errMsgFound(res.body.toString());
     }
     else if(res.statusCode == 200){
-      print("rite");
+      // print("rite");
+      bloc.currentUser = new User(res.body.toString());
+
+      // TODO: THIS is really stupid and i need to change it
+      Timer(Duration(seconds: 2), (){
+        Navigator.pushNamed(context, "/main");
+      });
+      // Navigator.pushNamed(context, "/loading");
     }
   }
 

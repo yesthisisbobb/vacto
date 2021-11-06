@@ -6,6 +6,7 @@ import 'pages/login.dart';
 import 'pages/register.dart';
 import 'pages/mainmenu.dart';
 import 'pages/play.dart';
+import 'pages/loadingscreen.dart';
 
 // TODO: Move these codes to someplace else
 Map<int, Color> vactoBlue = {
@@ -35,11 +36,12 @@ class Vacto extends StatelessWidget {
               primarySwatch: vactoColor,
             ),
             routes: {
-              "/": (context) => Register(),
+              "/": (context) => Login(),
               "/login": (context) => Login(),
               "/register": (context) => Register(),
               "/main": (context) => MainMenu(),
-              "/play": (context) => Play()
+              "/play": (context) => Play(),
+              "/loading": (context) => LoadingScreen()
             },
             debugShowMaterialGrid: false,
             debugShowCheckedModeBanner: false,

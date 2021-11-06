@@ -150,7 +150,11 @@ class Login extends StatelessWidget{
             style: ElevatedButton.styleFrom(
                 padding:
                     EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0)),
-            onPressed: snapshot.hasData ? lBloc.submit : null,
+            onPressed: (){
+              if (snapshot.hasData) {
+                lBloc.submit(context, vBloc);
+              }
+            },
           );
       }
     );

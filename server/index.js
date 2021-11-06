@@ -166,4 +166,17 @@ app.post("/api/user/login", async (req, res) => {
     return res.status(200).send(checkUser[0]["id"]);
 });
 
+app.get("/api/user/get/:id", async (req, res) => {
+    let id = req.params.id;
+
+    if(!id) return res.status(400).send("Id is empty");
+
+    let query = `select  *, DATE_FORMAT(dob, '%d-%m-%Y') as date from user where id = '${id}'`;
+    console.log(query);
+    let checkUser = await executeQuery(conn, query);
+    if(checkUser.length < 1) return res.status(400).send("User with such id doesn't exist");
+
+    return res.status(200).send(checkUser[0]);
+});
+
 app.listen(3000, (req, res) => console.log("Listening on port 3000..."));

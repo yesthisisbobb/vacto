@@ -1,3 +1,6 @@
+import 'dart:js';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../blocs/variables_provider.dart';
@@ -77,7 +80,7 @@ Widget leftContent(BuildContext context, VariablesBloc vBloc) {
                       ),
                       Container(
                         child: Image(
-                          image: AssetImage("tiers/tier7.png"),
+                          image: AssetImage("tiers/tier${vBloc.currentUser.level}.png"),
                           height: 32,
                         ),
                       ),
@@ -85,7 +88,7 @@ Widget leftContent(BuildContext context, VariablesBloc vBloc) {
                         height: 8.0,
                       ),
                       Text(
-                        "Joseph Emmerich Stoltz",
+                        vBloc.currentUser.username,
                         style: TextStyle(
                             fontSize: 22.0, fontWeight: FontWeight.w500),
                         textAlign: TextAlign.center,
@@ -275,7 +278,7 @@ List<Widget> menus(BuildContext context, VariablesBloc vBloc) {
       print("playtest3");
     }),
     menuItem(context, vBloc, "menu_icon/profile.png", "Profile", () {
-      print("playtest4");
+      print(vBloc.currentUser.toString());
     }),
     menuItem(context, vBloc, "menu_icon/settings.png", "Settings", () {
       print("playtest5");
