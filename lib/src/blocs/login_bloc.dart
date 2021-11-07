@@ -27,8 +27,8 @@ class LoginBloc with Validation{
   Stream<bool> get submitValid => CombineLatestStream.combine2(_emailController, _passwordController, (a, b) => true);
 
   submit(BuildContext context, VariablesBloc bloc) async{
-    final email = _emailController.value;
-    final password = _passwordController.value;
+    final email = (_emailController.hasValue) ? _emailController.value : "";
+    final password = (_passwordController.hasValue) ? _passwordController.value : "";
     
     var res = await http.post(Uri.parse("http://localhost:3000/api/user/login"),
       body: {
@@ -45,7 +45,7 @@ class LoginBloc with Validation{
       // print("rite");
       bloc.currentUser = new User(res.body.toString());
 
-      // TODO: THIS is really stupid and i need to change it
+      // TODO: THIS is really stupid and i need to change it; IDEA: use blocs and streams to pick up data from stream at mainmenu.dart
       Timer(Duration(seconds: 2), (){
         Navigator.pushNamed(context, "/main");
       });

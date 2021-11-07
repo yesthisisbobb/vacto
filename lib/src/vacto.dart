@@ -4,6 +4,7 @@ import 'package:vacto/src/blocs/register_provider.dart';
 import 'package:vacto/src/blocs/variables_provider.dart';
 import 'pages/login.dart';
 import 'pages/register.dart';
+import 'pages/registersuccess.dart';
 import 'pages/mainmenu.dart';
 import 'pages/play.dart';
 import 'pages/loadingscreen.dart';
@@ -39,6 +40,7 @@ class Vacto extends StatelessWidget {
               "/": (context) => Login(),
               "/login": (context) => Login(),
               "/register": (context) => Register(),
+              "/register/success": (context) =>RegisterSuccess(),
               "/main": (context) => MainMenu(),
               "/play": (context) => Play(),
               "/loading": (context) => LoadingScreen()

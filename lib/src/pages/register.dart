@@ -1,3 +1,5 @@
+import 'dart:js';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -34,8 +36,8 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
       vsync: this
     );
     colorAnimN = ColorTween(
-      begin: Colors.grey,
-      end: Colors.blue[900]
+      begin: Colors.blue[900],
+      end: Colors.grey
     ).animate(colorContN)..addListener(() {setState(() {});});
 
     colorContD =
@@ -48,11 +50,11 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
   }
 
   void normalRoleSelected(){
-    colorContN.forward();
+    colorContN.reverse();
     colorContD.reverse();
   }
   void dataRoleSelected(){
-    colorContN.reverse();
+    colorContN.forward();
     colorContD.forward();
   }
 
@@ -95,10 +97,9 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
                 },
                 onStepContinue: () {
                   if (_idx == _idxM) {
-                    // Navigator.pushNamed(context, "/somewhere");
                     rBloc.addExtras("$dropdownValue|$gender|$role");
                     if(rBloc.extrasStream != null){
-                      rBloc.submit();
+                      rBloc.submit(context);
                     }
                   } else {
                     setState(() {
@@ -134,7 +135,25 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
                   )
                 ],
               ),
-              SizedBox(height: 50.0,)
+              StreamBuilder(
+                  stream: rBloc.errorStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Container(
+                        decoration: BoxDecoration(color: Colors.red[50]),
+                        padding: EdgeInsets.symmetric(vertical: 24.0),
+                        child: Center(
+                          child: Text(
+                            snapshot.data.toString(),
+                            style: TextStyle(color: Colors.red[900], fontSize: 16.0),
+                          ),
+                        ),
+                      );
+                    } else {
+                      return Container();
+                    }
+                  }),
+              SizedBox(height: 50.0,),
             ],
           ),
         ),
