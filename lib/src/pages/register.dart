@@ -84,6 +84,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
         child: SingleChildScrollView(
           child: Column(
             children: [
+              SizedBox(height: 28.0,),
               Stepper(
                 currentStep: _idx,
                 onStepCancel: () {

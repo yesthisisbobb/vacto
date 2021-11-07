@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:localstorage/localstorage.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 
@@ -42,13 +43,16 @@ class LoginBloc with Validation{
       errMsgFound(res.body.toString());
     }
     else if(res.statusCode == 200){
-      // print("rite");
-      bloc.currentUser = new User(res.body.toString());
+      bloc.currentUser = new User();
+      await bloc.currentUser.fillOutDataFromID(res.body.toString()); // TODO: This process could be done in a loading screen
 
-      // TODO: THIS is really stupid and i need to change it; IDEA: use blocs and streams to pick up data from stream at mainmenu.dart
-      Timer(Duration(seconds: 2), (){
-        Navigator.pushNamed(context, "/main");
-      });
+      if(await bloc.localS.ready) bloc.localS.setItem("id", res.body.toString()); 
+
+      // (FIXED with await up above) THIS is really stupid and i need to change it; IDEA: use blocs and streams to pick up data from stream at mainmenu.dart
+      // Timer(Duration(seconds: 2), (){
+      //   Navigator.pushNamed(context, "/main");
+      // });
+      Navigator.pushNamed(context, "/main");
       // Navigator.pushNamed(context, "/loading");
     }
   }

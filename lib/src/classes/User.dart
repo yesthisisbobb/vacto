@@ -14,7 +14,9 @@ class User{
   int level;
   String role;
 
-  User(id){
+  User();
+
+  User.fromId(id){
     this.id = id;
     // print("Id initialized: $id");
     Future<String> fillData = fillOutDataFromID(id);
@@ -37,6 +39,8 @@ class User{
   }
 
   Future<String> fillOutDataFromID(id) async {
+    this.id = id;
+
     var res = await http.get(Uri.parse("http://localhost:3000/api/user/get/$id"));
     print("query done with url: http://localhost:3000/api/user/get/$id");
     print(res.body.toString());

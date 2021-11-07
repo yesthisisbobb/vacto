@@ -30,6 +30,7 @@ dependencies:
   rxdart: ^0.27.2
   carousel_slider: ^4.0.0
   http: ^0.13.3
+  localstorage: ^4.0.0+1
 
 dev_dependencies:
   flutter_test:

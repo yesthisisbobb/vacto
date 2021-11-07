@@ -2,6 +2,8 @@ import 'dart:js';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:vacto/src/classes/User.dart';
+import 'package:vacto/src/pages/loadingscreen.dart';
 
 import '../blocs/variables_provider.dart';
 
@@ -19,17 +21,51 @@ class _MainMenuState extends State<MainMenu> {
   Widget build(BuildContext context) {
     VariablesBloc vBloc = VariablesProvider.of(context);
 
-    return Scaffold(
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: Row(
-          children: [
-            Expanded(flex: 3, child: leftContent(context, vBloc)),
-            Expanded(flex: 7, child: rightContent(context, vBloc))
-          ],
-        ),
-      ),
+    return FutureBuilder(
+      future: Future<String>(() async {
+        String resString = "oof";
+        if (vBloc.currentUser == null) {
+          print("User is NULL");
+          try {
+            print("Trying to fetch localS");
+
+            String userid = vBloc.localS.getItem("id");
+            print(userid);
+            vBloc.currentUser = new User();
+            await vBloc.currentUser.fillOutDataFromID(userid);
+            print("awaited");
+
+            return "created";
+          } catch (e) {
+            print(e);
+          }
+        }
+        else{
+          resString = "found";
+        }
+
+        return resString;
+      }),
+      builder: (context, snapshot){
+        if(snapshot.hasData && snapshot.data == "created" || snapshot.hasData && snapshot.data == "found"){
+          return Scaffold(
+            body: Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: Row(
+                children: [
+                  Expanded(flex: 3, child: leftContent(context, vBloc)),
+                  Expanded(flex: 7, child: rightContent(context, vBloc))
+                ],
+              ),
+            ),
+          );
+        }
+        else{
+          // TODO: add navigator when there's no data in localstorage cause i don't know how to do it
+          return LoadingScreen();
+        }
+      },
     );
   }
 }
@@ -118,6 +154,7 @@ Widget leftContent(BuildContext context, VariablesBloc vBloc) {
                             ],
                           ),
                           onPressed: () {
+                            vBloc.localS.deleteItem("id");
                             Navigator.pushNamed(context, "/login");
                           },
                         ),

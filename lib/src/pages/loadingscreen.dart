@@ -18,24 +18,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
     );
   }
 
-  Future<String> test() async {
-    return await Future.delayed(Duration(seconds: 2), (){ return "true"; });
-  }
   Widget loadingScreen(){
     return Container(
       child: Center(
-        child: FutureBuilder(
-          future: test(),
-          builder: (context, snapshot){
-            if (snapshot.hasData && snapshot.data == "true") {
-              Navigator.pushNamed(context, "/play");
-              return Text("Loading success");
-            }
-            else{
-              return CircularProgressIndicator();
-            }
-          },
-        ),
+        child: CircularProgressIndicator()
       ),
     );
   }
