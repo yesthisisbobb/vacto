@@ -7,6 +7,7 @@ import 'pages/register.dart';
 import 'pages/registersuccess.dart';
 import 'pages/mainmenu.dart';
 import 'pages/play.dart';
+import 'pages/addnews.dart';
 import 'pages/loadingscreen.dart';
 
 // TODO: Move these codes to someplace else
@@ -25,6 +26,7 @@ Map<int, Color> vactoBlue = {
 MaterialColor vactoColor = MaterialColor(0xFF003399, vactoBlue);
 
 class Vacto extends StatelessWidget {
+  // TODO: make another file to check storage on whether or not the user has already logged in and call it in "/" route
   @override
   Widget build(BuildContext context) {
     return VariablesProvider(
@@ -37,7 +39,7 @@ class Vacto extends StatelessWidget {
               primarySwatch: vactoColor,
             ),
             routes: {
-              "/": (context) => Login(),
+              "/": (context) => AddNews(),
               "/login": (context) => Login(),
               "/register": (context) => Register(),
               "/register/success": (context) =>RegisterSuccess(),

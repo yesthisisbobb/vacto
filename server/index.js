@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql');
 const multer = require('multer');
+const { query } = require('express');
 // const request = require('request');
 
 // =========== REQUIREMENTS ===========
@@ -166,6 +167,7 @@ app.post("/api/user/login", async (req, res) => {
     return res.status(200).send(checkUser[0]["id"]);
 });
 
+// ------ GET USER ------ //
 app.get("/api/user/get/:id", async (req, res) => {
     let id = req.params.id;
 
@@ -177,6 +179,55 @@ app.get("/api/user/get/:id", async (req, res) => {
     if(checkUser.length < 1) return res.status(400).send("User with such id doesn't exist");
 
     return res.status(200).send(checkUser[0]);
+});
+
+// ------ ADD NEWS ------ //
+app.post("/api/news/add", async (req, res) => {
+    // TODO: Gambar
+    let id = 0; // AUTO INCREMENT
+    let author = (req.body.author) ? req.body.author : "none";
+    let title = req.body.title;
+    let picture = (req.body.picture) ? req.body.picture : ""; // pic can be null
+    let content = req.body.content;
+    let source = req.body.source;
+    let type = (req.body.type) ? req.body.type : "or";
+    let subtype = req.body.subtype;
+    let answer = req.body.answer;
+    let tags = req.body.tags; // FORMAT: 1,2,3,4,5,6 (cuma dipisah koma)
+
+    if(!author || !title || !content || !source || !type || !subtype || !answer) return res.status(400).send("One of the field is empty");
+
+    let query = `insert into news values(${id},'${author}','${title}', NOW(),'${picture}','${content}','${source}','${type}', '${subtype}','${answer}')`;
+    let insertNews = await executeQuery(conn, query);
+    console.log(query);
+    if (insertNews["affectedRows"] < 1) return res.status(400).send("News insert failed");
+
+    if (tags) {
+        let tagsArr = tags.split(",");
+
+        // prolly can cause error
+        let query = `select LAST_INSERT_ID() as last`;
+        let lastInsertQuery = await executeQuery(conn, query);
+        let lastInsertId = lastInsertQuery[0]["last"];
+
+        for (const item in tagsArr) {
+            if (Object.hasOwnProperty.call(tagsArr, item)) {
+                const element = tagsArr[item];
+                query = `insert into news_tag values(0,${lastInsertId},${element})`;
+                await executeQuery(conn, query);
+            }
+        }
+    }
+
+    return res.status(200).send("News insert successful");
+});
+
+app.get("/api/news/tags", async (req, res) => {
+    let query = `select * from tags`;
+    let getTags = await executeQuery(conn, query);
+    if (getTags.length < 1) return res.status(500).send("Tags not found somehow");
+
+    return res.status(200).send(getTags);
 });
 
 app.listen(3000, (req, res) => console.log("Listening on port 3000..."));
