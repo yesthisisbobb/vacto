@@ -19,6 +19,7 @@ class AddNews extends StatefulWidget {
 
 class _AddNewsState extends State<AddNews> {
   VariablesBloc vB;
+  TextStyle bold18 = TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold);
 
   String title;
   // TextEditingController titleC;
@@ -35,6 +36,10 @@ class _AddNewsState extends State<AddNews> {
   html.File uploadedFile;
 
   List<int> selectedTags = [];
+
+  bool isUploading = false;
+  bool uploadSuccesful = false;
+  bool errorExists = false;
 
   @override
   void initState() {
@@ -130,11 +135,23 @@ class _AddNewsState extends State<AddNews> {
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text("Upload"),
                               SizedBox(width: 8.0,),
-                              Icon(Icons.upload)
+                              Container(
+                                height: 18,
+                                width: 18,
+                                child: (isUploading == true)
+                                  ? CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                  : Icon(Icons.upload,
+                                    size: 18,
+                                  ),
+                              ),
+                              
                             ],
                           )
                         ),
@@ -142,6 +159,8 @@ class _AddNewsState extends State<AddNews> {
                           upload();
                         },
                       ),
+                      SizedBox(height: 24.0,),
+                      validationMessage(),
                       SizedBox(height: 42.0,),
                     ],
                   ),
@@ -160,6 +179,7 @@ class _AddNewsState extends State<AddNews> {
         labelText: "Title",
         border: OutlineInputBorder()
       ),
+      textCapitalization: TextCapitalization.words,
       onChanged: (val){
         setState(() {
           title = val;
@@ -193,6 +213,9 @@ class _AddNewsState extends State<AddNews> {
             border: OutlineInputBorder(),
             labelText: "Description",
           ),
+          keyboardType: TextInputType.multiline,
+          textCapitalization: TextCapitalization.sentences,
+          maxLines: null,
           onChanged: (val){
             setState(() {
               description = val;
@@ -242,25 +265,33 @@ class _AddNewsState extends State<AddNews> {
           return Container(
             child: Column(
               children: [
+                Text("News artice tags", style: bold18,),
+                SizedBox(height: 12.0,),
                 Wrap(
                   direction: Axis.horizontal,
                   children: List<Widget>.generate(data.length,
                     (index) {
-                      return ChoiceChip(
-                        label: Text(data[index]["tag"]),
-                        selected: selectedTags.contains(data[index]["id"]),
-                        onSelected: (selected){
-                          setState(() {
-                            selectedTags.contains(data[index]["id"])
-                              ? selectedTags.remove(data[index]["id"])
-                              : selectedTags.add(data[index]["id"]);
-                          });
-                        },
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ChoiceChip(
+                            label: Text(data[index]["tag"]),
+                            selected: selectedTags.contains(data[index]["id"]),
+                            onSelected: (selected) {
+                              setState(() {
+                                selectedTags.contains(data[index]["id"])
+                                    ? selectedTags.remove(data[index]["id"])
+                                    : selectedTags.add(data[index]["id"]);
+                              });
+                            },
+                          ),
+                          SizedBox(width: 8.0,)
+                        ],
                       );
                     }
                   ),
                 ),
-                SizedBox(height: 24.0,),
+                SizedBox(height: 30.0,),
               ],
             ),
           );
@@ -281,11 +312,8 @@ class _AddNewsState extends State<AddNews> {
         SizedBox(height: 12.0,),
         Align(
           alignment: Alignment.centerLeft,
-          child: Text("Intended answer for article",
-            style: TextStyle(
-              fontSize: 18.0,
-              fontWeight: FontWeight.bold
-            ),
+          child: Text("Intended answer for news article",
+            style: bold18,
           )
         ),
         SizedBox(height: 12.0,),
@@ -315,6 +343,10 @@ class _AddNewsState extends State<AddNews> {
   }
 
   upload() async {
+    setState(() {
+      isUploading = true;
+    });
+
     String author = vB.localS.getItem("id");
     print(author);
     print(title);
@@ -324,14 +356,26 @@ class _AddNewsState extends State<AddNews> {
     print(subtype);
     print(answer);
     String tags = "";
-    for (var i = 0; i < selectedTags.length; i++) {
-      if(i < selectedTags.length - 1) tags += "${selectedTags[i]},";
-      else tags += "${selectedTags[i]}";
+    if(selectedTags.isNotEmpty){
+      for (var i = 0; i < selectedTags.length; i++) {
+        if (i < selectedTags.length - 1)
+          tags += "${selectedTags[i]},";
+        else
+          tags += "${selectedTags[i]}";
+      }
     }
     print(tags);
 
-    var res = await http.post(Uri.parse("http://localhost:3000/api/news/add"),
-      body: {
+    if(author == null || title == null || description == null || description == null || source == null || subtype == null || answer == null){
+      setState(() {
+        errorExists = true;
+        uploadSuccesful = false;
+      });
+    }
+    else{
+      print("Masuk tru");
+      var res = await http
+          .post(Uri.parse("http://localhost:3000/api/news/add"), body: {
         "author": author,
         "title": title,
         "content": description,
@@ -340,10 +384,49 @@ class _AddNewsState extends State<AddNews> {
         "subtype": subtype,
         "answer": answer,
         "tags": tags
-      }
-    );
+      });
 
-    print(res.body.toString());
+      if (res.statusCode == 200) {
+        print(res.body.toString());
+
+        setState(() {
+          errorExists = false;
+          uploadSuccesful = true;
+        });
+      }
+    }
+
+    setState(() {
+      isUploading = false;
+    });
+  }
+
+  Widget validationMessage() {
+    if (errorExists == true && uploadSuccesful == false) {
+      return Container(
+        padding: EdgeInsets.all(12.0),
+        color: Colors.red[50],
+        child: Text(
+          "Fields must not be empty!",
+          style: TextStyle(
+            color: Colors.red[900],
+          ),
+        ),
+      );
+    } else if (uploadSuccesful == true && errorExists == false) {
+      return Container(
+        padding: EdgeInsets.all(12.0),
+        color: Colors.green[50],
+        child: Text(
+          "News article succesfully added!",
+          style: TextStyle(
+            color: Colors.green[900],
+          ),
+        ),
+      );
+    } else {
+      return Container();
+    }
   }
 
   // _startFilePicker() async{

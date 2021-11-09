@@ -268,6 +268,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
                           hintText: "John Doe",
                           errorText: (snapshot.hasError) ? snapshot.error.toString() : null,
                         ),
+                        textCapitalization: TextCapitalization.words,
                         onChanged: rBloc.changeName,
                       );
                     }

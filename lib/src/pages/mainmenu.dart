@@ -309,7 +309,7 @@ List<Widget> menus(BuildContext context, VariablesBloc vBloc) {
       print("playtest2");
     }),
     menuItem(context, vBloc, "menu_icon/add.png", "Add News", () {
-      print("playtest2");
+      Navigator.pushNamed(context, "/add");
     }),
     menuItem(context, vBloc, "menu_icon/leaderboard.png", "Leaderboard", () {
       print("playtest3");
