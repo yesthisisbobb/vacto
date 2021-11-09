@@ -12,6 +12,7 @@ class User{
   String gender;
   String pp; // TODO: may need to change this
   int level;
+  int rating;
   String role;
 
   User();
@@ -24,7 +25,7 @@ class User{
     fillData.then((value) => print(value)).whenComplete(() => print("fillData complete"));
   }
 
-  User.fromCompleteData({id, username, password, email, name, nationality, dob, gender, pp, level, role}){
+  User.fromCompleteData({id, username, password, email, name, nationality, dob, gender, pp, level, rating, role}){
     this.id = id;
     this.username = username;
     this.password = password;
@@ -35,6 +36,7 @@ class User{
     this.gender = gender;
     this.pp = pp;
     this.level = level;
+    this.rating = rating;
     this.role = role;
   }
 
@@ -68,6 +70,8 @@ class User{
       // print("pp: ${parsedData['pp']}");
       this.level = parsedData["level"];
       // print("level: ${parsedData['level']}");
+      this.rating = parsedData["rating"];
+      // print("rating: ${parsedData['rating']}");
       this.role = parsedData["role"];
       // print("role: ${parsedData['role']}");
 
@@ -85,6 +89,6 @@ class User{
 
   @override
   String toString() {
-    return "ID: $id, Username: $username, Level: $level";
+    return "ID: $id, Username: $username, Level: $level, rating: $rating";
   }
 }

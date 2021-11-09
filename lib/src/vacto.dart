@@ -10,6 +10,8 @@ import 'pages/play.dart';
 import 'pages/addnews.dart';
 import 'pages/loadingscreen.dart';
 
+import 'pages/paintingground.dart';
+
 // TODO: Move these codes to someplace else
 Map<int, Color> vactoBlue = {
   50: Color.fromRGBO(0, 51, 153, .1),
@@ -39,7 +41,7 @@ class Vacto extends StatelessWidget {
               primarySwatch: vactoColor,
             ),
             routes: {
-              "/": (context) => Login(),
+              "/": (context) => Play(),
               "/login": (context) => Login(),
               "/register": (context) => Register(),
               "/register/success": (context) =>RegisterSuccess(),

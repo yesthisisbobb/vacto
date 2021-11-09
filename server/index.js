@@ -145,7 +145,7 @@ app.post("/api/user/register", async (req, res) => {
     let checkEmail = await executeQuery(conn, `select email from user where email = '${email}'`);
     if(checkEmail.length > 0) return res.status(400).send("Email has already been used");
 
-    let query = `insert into user values('${id}','${username}','${password}','${email}','${name}','${nationality}',STR_TO_DATE('${dob}', "%d-%m-%Y"),'${gender}', '${pp}', ${level}, '${role}')`;
+    let query = `insert into user values('${id}','${username}','${password}','${email}','${name}','${nationality}',STR_TO_DATE('${dob}', "%d-%m-%Y"),'${gender}', '${pp}', ${level}, 0, '${role}')`;
     console.log(`Insert user query: ${query}`);
     
     let registerUser = await executeQuery(conn, query);
@@ -220,6 +220,51 @@ app.post("/api/news/add", async (req, res) => {
     }
 
     return res.status(200).send("News insert successful");
+});
+
+app.get("/api/news/get/:id", async (req, res) => {
+    let id = req.params.id;
+    let tags = "";
+
+    let query = `select * from news where id=${id}`;
+    let getNews = await executeQuery(conn, query);
+    if (getNews.length < 1) return res.status(400).send("News retrieval failed");
+
+    query = `select t.tag as tag from tags t, news_tag nt WHERE nt.news = ${id} and nt.tag = t.id`;
+    let getTags = await executeQuery(conn, query);
+    // if (getTags.length < 1) return res.status(400).send("News retrieval failed");
+
+    for (let i = 0; i < getTags.length; i++) {
+        const tag = getTags[i]["tag"];
+        if(i < getTags.length - 1) tags += `${tag},`;
+        else tags += tag;
+    }
+
+    let result = {
+        "id": getNews[0]["id"],
+        "author": getNews[0]["author"],
+        "title": getNews[0]["title"],
+        "date": getNews[0]["date"],
+        "picture": getNews[0]["picture"],
+        "content": getNews[0]["content"],
+        "source": getNews[0]["source"],
+        "type": getNews[0]["type"],
+        "sub_type": getNews[0]["sub_type"],
+        "answer": getNews[0]["answer"],
+        "tags": tags,
+    };
+
+    return res.status(200).send(result);
+});
+
+app.get("/api/news/generate/:num", async (req, res) => {
+    let num = req.params.num;
+
+    let query = `select id from news order by rand() limit ${num}`;
+    let getGeneratedNews = await executeQuery(conn, query);
+    if(getGeneratedNews.length < 1) return res.status(400).send("Generate failed");
+
+    return res.status(200).send(getGeneratedNews);
 });
 
 app.get("/api/news/tags", async (req, res) => {
