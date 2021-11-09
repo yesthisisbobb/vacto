@@ -183,7 +183,7 @@ app.get("/api/user/get/:id", async (req, res) => {
 
 // ------ ADD NEWS ------ //
 app.post("/api/news/add", async (req, res) => {
-    // TODO: Gambar
+    // TODO: Gambar & status news udah di verify atau belom
     let id = 0; // AUTO INCREMENT
     let author = (req.body.author) ? req.body.author : "none";
     let title = req.body.title;
@@ -258,6 +258,7 @@ app.get("/api/news/get/:id", async (req, res) => {
 });
 
 app.get("/api/news/generate/:num", async (req, res) => {
+    // TODO: masukno soal bonus & ngefilter news yang 'or' soale 'uc' itu soal bonus
     let num = req.params.num;
 
     let query = `select id from news order by rand() limit ${num}`;

@@ -29,7 +29,7 @@ class News{
       this.author = parsedData["author"];
       // print("author: $author");
       this.title = parsedData["title"];
-      print("title: $title");
+      // print("title: $title");
       this.date = DateTime.parse(parsedData["date"]);
       // print("date: $date");
       this.picture = parsedData["picture"];
