@@ -21,11 +21,19 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   List<News> news;
   bool newsHasAlreadyInitialized = false;
 
+  bool isTimerStarted = false;
+  double maxTime = 5;
+  double timerValue = 0;
+  Timer timer;
+  AnimationController timerColorC;
+  Animation<Color> timerColor;
+
   int currentRound = 1;
   int maxRound = 10;
   int score = 0;
   bool isDraggedToLeft = false;
   bool isDraggedToRight = false;
+  bool isGameOver = false;
 
   AnimationController swipeRightController;
   AnimationController swipeLeftController;
@@ -36,6 +44,16 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   @override
   void initState() {
     super.initState();
+
+    timerColorC = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1)
+    );
+
+    timerColor = ColorTween(
+      begin: Colors.blue,
+      end: Colors.grey
+    ).animate(timerColorC);
 
     // Controller init
     swipeRightController = AnimationController(
@@ -57,10 +75,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     swipeRightCardAnimation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         print("OK Kanan");
-        setState(() {
-          if(currentRound != maxRound) currentRound++;
-        });
-        print("currentRound: $currentRound");
+        nextRound();
         swipeRightController.reverse();
       }
     });
@@ -72,10 +87,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     swipeLeftCardAnimation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         print("OK Kiri");
-        setState(() {
-          if(currentRound != maxRound) currentRound++;
-        });
-        print("currentRound: $currentRound");
+        nextRound();
         swipeLeftController.reverse();
       }
     });
@@ -98,6 +110,20 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       });
     }
     print("score: $score");
+  }
+
+  nextRound(){
+    setState(() {
+      if (vBloc.isGameModeTimed == false) {
+        if (currentRound != maxRound) {
+          currentRound++;
+          if(currentRound == maxRound) isGameOver = true;
+        }
+      } else {
+        currentRound++;
+      }
+    });
+    print("currentRound: $currentRound");
   }
 
   @override
@@ -188,6 +214,21 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                 if(snapshot.hasData){
                   if (news.isNotEmpty) {
                     newsHasAlreadyInitialized = true;
+
+                    // TIMER INIT
+                    if(isTimerStarted == false && vBloc.isGameModeTimed){
+                      timer = Timer.periodic(Duration(seconds: 1), (timer) {
+                        if (timer.tick == maxTime) {
+                          timer.cancel();
+                          isGameOver = true;
+                        }
+                        setState(() {
+                          timerValue = timer.tick / maxTime;
+                        });
+                      });
+                      isTimerStarted = true;
+                    }
+
                     return baseWidget();
                   }
                   else{
@@ -293,8 +334,26 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     return Expanded(
       child: Container(
         color: Theme.of(context).colorScheme.primaryVariant,
+        width: MediaQuery.of(context).size.width,
         child: Stack(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Image.asset("play_decor/left-bg.png"),
+                  ),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Image.asset("play_decor/right-bg.png"),
+                  ),
+                ),
+              ],
+            ),
             Center(
               child: FractionallySizedBox(
                 widthFactor: 0.74,
@@ -312,19 +371,25 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                     width: MediaQuery.of(context).size.width * 0.74,
                     height: MediaQuery.of(context).size.height * 0.74,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondaryVariant,
+                      color: Color.fromRGBO(27, 66, 143, 1.0),
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                   ),
                   child: mainNewsContainer(),
                   onDragCompleted: () {
                     if (isDraggedToLeft == true && isDraggedToRight == false) {
-                      vBloc.addCardDirection(vBloc.CARD_SWIPE_LEFT);
-                      swipeLeftController.forward();
+                      if(isGameOver == false){
+                        validateAnswer(vBloc.CARD_SWIPE_LEFT);
+                        vBloc.addCardDirection(vBloc.CARD_SWIPE_LEFT);
+                        swipeLeftController.forward();
+                      }
                     }
                     else if (isDraggedToLeft == false && isDraggedToRight == true){
-                      vBloc.addCardDirection(vBloc.CARD_SWIPE_RIGHT);
-                      swipeRightController.forward();
+                      if(isGameOver == false){
+                        validateAnswer(vBloc.CARD_SWIPE_RIGHT);
+                        vBloc.addCardDirection(vBloc.CARD_SWIPE_RIGHT);
+                        swipeRightController.forward();
+                      }
                     }
                   },
                 ),
@@ -347,10 +412,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           return SizedBox.expand();
         },
         onAccept: (data){
-          setState(() {
-            isDraggedToLeft = data;
-            isDraggedToRight = false;
-          });
+          isDraggedToLeft = data;
+          isDraggedToRight = false;
           print("left: $isDraggedToLeft, right: $isDraggedToRight");
         },
       ),
@@ -364,10 +427,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           return SizedBox.expand();
         },
         onAccept: (data) {
-          setState(() {
-            isDraggedToLeft = false;
-            isDraggedToRight = data;
-          });
+          isDraggedToLeft = false;
+          isDraggedToRight = data;
           print("left: $isDraggedToLeft, right: $isDraggedToRight");
         },
       ),
@@ -436,9 +497,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                 height: 18.0,
               ),
               Container(
-                height: 600,
+                height: 400,
                 child: Image.asset(
-                  "placeholders/testpp.jpg",
+                  "placeholders/wide-pic.png",
                   fit: BoxFit.fitWidth,
                 ),
               ),
@@ -501,6 +562,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           children: [
             backButton(),
             middleActions(),
+            timerPanel(),
           ],
         ),
       ),
@@ -514,7 +576,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 20.0,
+            width: 30.0,
           ),
           IconButton(
             icon: Icon(Icons.exit_to_app_rounded),
@@ -542,7 +604,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             splashColor: Colors.green[200],
             color: Colors.red,
             onPressed: () {
-              if (currentRound != 10) {
+              // TODO: Change this to just check isGameOver
+              if (isGameOver == false) {
                 validateAnswer(vBloc.CARD_SWIPE_LEFT);
                 vBloc.addCardDirection(vBloc.CARD_SWIPE_LEFT);
                 vBloc.swipeDirection = vBloc.CARD_SWIPE_LEFT;
@@ -592,7 +655,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             splashColor: Colors.green[200],
             color: Theme.of(context).colorScheme.secondary,
             onPressed: () {
-              if (currentRound != 10) {
+              if (isGameOver == false) {
                 validateAnswer(vBloc.CARD_SWIPE_RIGHT);
                 vBloc.addCardDirection(vBloc.CARD_SWIPE_RIGHT);
                 vBloc.swipeDirection = vBloc.CARD_SWIPE_RIGHT;
@@ -603,6 +666,37 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           ),
         ],
       ),
-    ); 
+    );
+  }
+
+  Widget timerPanel(){
+    double  wi = 50.0, he = 50.0;
+
+    if (vBloc.isGameModeTimed == true) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: wi,
+              width: he,
+              child: CircularProgressIndicator.adaptive(
+                value: timerValue,
+                backgroundColor: Colors.grey,
+                valueColor: timerColor,
+                strokeWidth: 3.0,
+              ),
+            ),
+            SizedBox(
+              width: 30.0,
+            ),
+          ],
+        ),
+      );
+    }
+    else{
+      return Container();
+    }
   }
 }
