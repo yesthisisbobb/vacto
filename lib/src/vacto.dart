@@ -7,6 +7,7 @@ import 'pages/register.dart';
 import 'pages/registersuccess.dart';
 import 'pages/mainmenu.dart';
 import 'pages/play.dart';
+import 'pages/challenge.dart';
 import 'pages/addnews.dart';
 import 'pages/loadingscreen.dart';
 
@@ -41,7 +42,7 @@ class Vacto extends StatelessWidget {
               primarySwatch: vactoColor,
             ),
             routes: {
-              "/": (context) => Login(),
+              "/": (context) => Challenge(),
               "/login": (context) => Login(),
               "/register": (context) => Register(),
               "/register/success": (context) =>RegisterSuccess(),

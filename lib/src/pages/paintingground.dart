@@ -31,32 +31,36 @@ class _PaintingGroundState extends State<PaintingGround> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Theme.of(context).colorScheme.primary,
-        child: SlideTransition(
-          position: animation,
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min, 
-              children: [
-                GestureDetector(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                  ),
-                  onTap: (){
-                    controller.forward();
-                  },
+      body: Text(""),
+    );
+  }
+
+  Widget animTest(){
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: Theme.of(context).colorScheme.primary,
+      child: SlideTransition(
+        position: animation,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min, 
+            children: [
+              GestureDetector(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
                 ),
-                Text(
-                  "Generating Questions...",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white),
-                )
-              ]
-            )
-          ),
+                onTap: (){
+                  controller.forward();
+                },
+              ),
+              Text(
+                "Generating Questions...",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white),
+              )
+            ]
+          )
         ),
       ),
     );

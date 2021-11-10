@@ -204,7 +204,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     String caAddition = answeredCorrect.toString();
     String questionAddition = currentRound.toString();
     
-      // TODO: Need to be changed to detect if user pressed exit before finishing
     if (vBloc.isGameModeTimed == true) {
       gameMode = "t";
       timeAddition = timer.tick.toString();
@@ -516,6 +515,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                               OutlinedButton(
                                 child: Text("Back to main menu"),
                                 onPressed: () {
+                                  vBloc.isGameModeTimed = false;
+                                  vBloc.isGameModeChallenge = false;
                                   Navigator.popAndPushNamed(context, "/main");
                                 },
                               ),
@@ -871,6 +872,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             iconSize: 24,
             onPressed: () {
               timer.cancel();
+              vBloc.isGameModeTimed = false;
+              vBloc.isGameModeChallenge = false;
               Navigator.pop(context);
             },
           ),

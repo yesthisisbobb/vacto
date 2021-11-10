@@ -245,6 +245,18 @@ app.post("/api/user/update/stats", async (req, res) => {
     return res.status(200).send("Update successful");
 });
 
+// ------ GET USERS ------ //
+// Not to be confused with get 'user', which only fetches a singular data
+app.get("/api/users/get/:num", async (req, res) => {
+    let num = req.params.num;
+
+    let query = `select id from user order by rand() limit ${num}`;
+    let getUsers = await executeQuery(conn, query);
+    if(getUsers.length < 1) return res.status(400).send("Failed to get users");
+
+    return res.status(200).send(getUsers);
+});
+
 // ------ ADD NEWS ------ //
 app.post("/api/news/add", async (req, res) => {
     // TODO: Gambar & status news udah di verify atau belom
