@@ -41,7 +41,7 @@ class Vacto extends StatelessWidget {
               primarySwatch: vactoColor,
             ),
             routes: {
-              "/": (context) => Login(),
+              "/": (context) => Play(),
               "/login": (context) => Login(),
               "/register": (context) => Register(),
               "/register/success": (context) =>RegisterSuccess(),

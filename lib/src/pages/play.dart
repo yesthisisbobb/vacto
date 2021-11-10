@@ -32,6 +32,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   int maxRound = 10;
   int score = 0;
   int recentScorePoint = 0;
+  int answeredCorrect = 0;
   bool isDraggedToLeft = false;
   bool isDraggedToRight = false;
   bool isGameOver = false;
@@ -77,8 +78,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       if (status == AnimationStatus.completed) {
         print("OK Kanan");
         await uploadAnswer();
-        nextRound();
-        swipeRightController.reverse();
+        if (nextRound()) swipeRightController.reverse();
       }
     });
 
@@ -90,28 +90,35 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       if (status == AnimationStatus.completed) {
         print("OK Kiri");
         await uploadAnswer();
-        nextRound();
-        swipeLeftController.reverse();
+        if (nextRound()) swipeLeftController.reverse();
       }
     });
   }
 
   validateAnswer(String dir){
     if(dir == vBloc.CARD_SWIPE_LEFT && news[currentRound - 1].answer == "hoax"){
+      print("bener hoax");
       setState(() {
         recentScorePoint = Random().nextInt(7) + 5;
+        print(recentScorePoint.toString());
         score += recentScorePoint;
+        answeredCorrect++;
       });
     }
     else if(dir == vBloc.CARD_SWIPE_RIGHT && news[currentRound - 1].answer == "legit"){
+      print("bener legit");
       setState(() {
         recentScorePoint = Random().nextInt(7) + 5;
+        print(recentScorePoint.toString());
         score += recentScorePoint;
+        answeredCorrect++;
       });
     }
     else{
+      print("salah");
       setState(() {
-        recentScorePoint = -1 * Random().nextInt(7) + 2;
+        recentScorePoint = Random().nextInt(7) + 2;
+        print(recentScorePoint.toString());
         score -= recentScorePoint;
       });
     }
@@ -144,18 +151,26 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     }
   }
 
-  nextRound(){
+  bool nextRound(){
+    bool canDoNextRound = true; 
     setState(() {
       if (vBloc.isGameModeTimed == false) {
-        if (currentRound != maxRound) {
+        if (currentRound <= maxRound) {
           currentRound++;
-          if(currentRound == maxRound) isGameOver = true;
+          canDoNextRound =  true;
+        }
+        if (currentRound == maxRound + 1) {
+          currentRound = maxRound - 1;
+          canDoNextRound = false;
+          isGameOver = true;
         }
       } else {
         currentRound++;
+        canDoNextRound =  true;
       }
     });
     print("currentRound: $currentRound");
+    return canDoNextRound;
   }
 
   @override
@@ -292,13 +307,171 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   }
 
   Widget baseWidget(){
-    return Column(
+    return Stack(
       children: [
-        infoPanel(),
-        topContent(),
-        bottomContent(),
+        Column(
+          children: [
+            infoPanel(),
+            topContent(),
+            bottomContent(),
+          ],
+        ),
+        gameOverScreen(),
+        Positioned(
+          top: 70,
+          left: 0,
+          child: ElevatedButton(
+            child: Text("Debug game over"),
+            onPressed: (){
+              setState(() {
+                isGameOver = !isGameOver;
+              });
+            },
+          )
+        )
       ],
     );
+  }
+
+  Widget gameOverScreen(){
+    String headerText = "Congratulations";
+    if(answeredCorrect < 5) headerText = "Nice try";
+    if(answeredCorrect == 5) headerText = "Well balanced";
+
+    String bottomText = "And answered correctly ";
+    String bottomText2 = "$answeredCorrect ";
+    String bottomText3 = "times out of ";
+    String bottomText4 = "$maxRound ";
+    String bottomText5 = "news article!";
+    if (vBloc.isGameModeTimed == true) bottomText = "And managed to answer correctly $answeredCorrect times out of $currentRound news article!";
+
+    TextStyle headerStyle = TextStyle(
+      fontSize: 42.0,
+      fontWeight: FontWeight.bold,
+    );
+    TextStyle scoreStyle = TextStyle(
+      fontSize: 30.0,
+      fontWeight: FontWeight.w600,
+    );
+    TextStyle otherStyle = TextStyle(
+      fontSize: 18.0,
+    );
+    TextStyle otherStyleBold = TextStyle(
+      fontSize: 18.0,
+      fontWeight: FontWeight.w500
+    );
+
+    RichText bottomTextWidget = RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        text: bottomText,
+        style: Theme.of(context).textTheme.bodyText2,
+        children: [
+          TextSpan(text: bottomText2, style: otherStyleBold),
+          TextSpan(text: bottomText3),
+          TextSpan(text: bottomText4, style: otherStyleBold),
+          TextSpan(text: bottomText5),
+        ]
+      ),
+    );
+
+    if (isGameOver == true) {
+      return AnimatedContainer(
+        duration: Duration(seconds: 1),
+        height: double.infinity,
+        width: double.infinity,
+        color: Color.fromRGBO(0, 0, 0, 0.5),
+        child: Center(
+          child: Container(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
+                  child: Container(
+                    padding: EdgeInsets.all(32.0),
+                    child: Container(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "$headerText!",
+                            style: headerStyle,
+                          ),
+                          SizedBox(
+                            height: 16.0,
+                          ),
+                          (vBloc.isGameModeTimed == true)
+                              ? Text("Within a span of 3 minutes")
+                              : SizedBox.shrink(),
+                          (vBloc.isGameModeTimed == true)
+                              ? SizedBox(
+                                  height: 8.0,
+                                )
+                              : SizedBox.shrink(),
+                          Text(
+                            "You finished the game with a score of",
+                            style: otherStyle,
+                          ),
+                          SizedBox(
+                            height: 10.0,
+                          ),
+                          Text(
+                            "$score",
+                            style: scoreStyle,
+                          ),
+                          SizedBox(
+                            height: 10.0,
+                          ),
+                          Container(
+                            width: 220,
+                            child: bottomTextWidget,
+                          ),
+                          SizedBox(
+                            height: 30.0,
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              OutlinedButton(
+                                child: Text("Back to main menu"),
+                                onPressed: () {
+                                  Navigator.popAndPushNamed(context, "/main");
+                                },
+                              ),
+                              SizedBox(
+                                width: 20.0,
+                              ),
+                              ElevatedButton(
+                                child: Text("Try again"),
+                                onPressed: () {
+                                  Navigator.popAndPushNamed(context, "/play");
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: -46,
+                  right: -32,
+                  child: Image.asset(
+                    "vacto_logo.png",
+                    width: 100,
+                  ),
+                ),
+              ],
+            )
+          ),
+        ),
+      );
+    }
+    else{
+      return Container();
+    }
   }
 
   Widget infoPanel(){
