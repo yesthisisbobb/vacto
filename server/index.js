@@ -276,4 +276,22 @@ app.get("/api/news/tags", async (req, res) => {
     return res.status(200).send(getTags);
 });
 
+app.post("/api/answer/upload", async (req, res) => {
+    let user = req.body.user;
+    let news = req.body.news;
+    let answer = req.body.answer;
+    let score = req.body.score;
+
+    if(!user || !news || !answer || !score) return res.status(400).send("One of the field is empty!");
+
+    news = parseInt(req.body.news);
+    score = parseInt(req.body.score);
+    
+    let query = `insert into user_answer values(0, '${user}', ${news}, '${answer}', ${score})`;
+    let insertAnswer = await executeQuery(conn, query);
+    if(insertAnswer["affectedRows"] < 1) return res.status(400).send("Insert failed");
+
+    return res.status(200).send("Insert successful");
+});
+
 app.listen(3000, (req, res) => console.log("Listening on port 3000..."));

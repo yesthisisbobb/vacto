@@ -31,6 +31,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   int currentRound = 1;
   int maxRound = 10;
   int score = 0;
+  int recentScorePoint = 0;
   bool isDraggedToLeft = false;
   bool isDraggedToRight = false;
   bool isGameOver = false;
@@ -72,9 +73,10 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       end: Offset(1.5, 0.0)
     ).animate(CurvedAnimation(parent: swipeRightController, curve: Curves.easeInQuad));
 
-    swipeRightCardAnimation.addStatusListener((status) {
+    swipeRightCardAnimation.addStatusListener((status) async {
       if (status == AnimationStatus.completed) {
         print("OK Kanan");
+        await uploadAnswer();
         nextRound();
         swipeRightController.reverse();
       }
@@ -84,9 +86,10 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         Tween<Offset>(begin: Offset.zero, end: Offset(-1.5, 0.0)).animate(
             CurvedAnimation(parent: swipeLeftController, curve: Curves.easeInQuad));
 
-    swipeLeftCardAnimation.addStatusListener((status) {
+    swipeLeftCardAnimation.addStatusListener((status) async {
       if (status == AnimationStatus.completed) {
         print("OK Kiri");
+        await uploadAnswer();
         nextRound();
         swipeLeftController.reverse();
       }
@@ -96,20 +99,49 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   validateAnswer(String dir){
     if(dir == vBloc.CARD_SWIPE_LEFT && news[currentRound - 1].answer == "hoax"){
       setState(() {
-        score += Random().nextInt(7) + 5;
+        recentScorePoint = Random().nextInt(7) + 5;
+        score += recentScorePoint;
       });
     }
     else if(dir == vBloc.CARD_SWIPE_RIGHT && news[currentRound - 1].answer == "legit"){
       setState(() {
-        score += Random().nextInt(7) + 5;
+        recentScorePoint = Random().nextInt(7) + 5;
+        score += recentScorePoint;
       });
     }
     else{
       setState(() {
-        score -= Random().nextInt(7) + 2;
+        recentScorePoint = -1 * Random().nextInt(7) + 2;
+        score -= recentScorePoint;
       });
     }
     print("score: $score");
+  }
+
+  uploadAnswer() async {
+    String recentAnswer = "";
+    if (vBloc.swipeDirection == vBloc.CARD_SWIPE_LEFT) recentAnswer = "hoax";
+    else if (vBloc.swipeDirection == vBloc.CARD_SWIPE_RIGHT) recentAnswer = "legit";
+    print("noprob");
+
+    var res = await http.post(Uri.parse("http://localhost:3000/api/answer/upload"),
+      body: {
+        "user": vBloc.localS.getItem("id"),
+        "news": news[currentRound - 1].id.toString(),
+        "answer": recentAnswer,
+        "score": recentScorePoint.toString()
+      }
+    );
+    print("noprob2");
+
+    if (res.statusCode == 200) {
+      print("noprob3a");
+      return true;
+    }
+    else{
+      print("noprob3b");
+      return false;
+    }
   }
 
   nextRound(){
