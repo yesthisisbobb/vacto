@@ -23,6 +23,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
   bool isTimerStarted = false;
   double maxTime = 180;
+  // double maxTime = 5;
   double timerValue = 0;
   Timer timer;
   AnimationController timerColorC;
@@ -81,6 +82,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         print("OK Kanan");
         await uploadAnswer();
         nextRound();
+        await gameOverProccess();
         if (isGameOver == false) swipeRightController.reverse();
       }
     });
@@ -94,6 +96,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         print("OK Kiri");
         await uploadAnswer();
         nextRound();
+        await gameOverProccess();
         if (isGameOver == false) swipeLeftController.reverse();
       }
     });
@@ -160,7 +163,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     }
   }
 
-  nextRound() async {
+  nextRound(){
     setState(() {
       if (vBloc.isGameModeTimed == false) {
         if (currentRound <= maxRound) {
@@ -178,14 +181,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       }
     });
 
-    // Perhitungan game over screen
-    if (isGameOver == true) {
-      if(await updateStats()){
-        setState(() {
-          canShowGameOverScreen = true;
-        });
-      }
-    }
     print("currentRound: $currentRound");
     return canDoNextRound;
   }
@@ -233,6 +228,17 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     await vBloc.currentUser.fillOutDataFromID(vBloc.localS.getItem("id"));
 
     return true;
+  }
+
+  gameOverProccess() async {
+    // Perhitungan game over screen
+    if (isGameOver == true) {
+      if(await updateStats()){
+        setState(() {
+          canShowGameOverScreen = true;
+        });
+      }
+    }
   }
 
   @override
@@ -330,11 +336,13 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
                     // TIMER INIT
                     if(isTimerStarted == false && vBloc.isGameModeTimed){
-                      timer = Timer.periodic(Duration(seconds: 1), (timer) {
+                      timer = Timer.periodic(Duration(seconds: 1), (timer) async {
                         if (timer.tick == maxTime) {
                           timer.cancel();
-                          print(timer.tick);
-                          isGameOver = true;
+                          setState(() {
+                            isGameOver = true;
+                          });
+                          await gameOverProccess();
                         }
                         setState(() {
                           timerValue = timer.tick / maxTime;
@@ -419,8 +427,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     String bottomText2 = "$answeredCorrect ";
     String bottomText3 = "times out of ";
     String bottomText4 = "$maxRound ";
+    if (vBloc.isGameModeTimed == true) bottomText4 = "$currentRound ";
     String bottomText5 = "news article!";
-    if (vBloc.isGameModeTimed == true) bottomText = "And managed to answer correctly $answeredCorrect times out of $currentRound news article!";
 
     TextStyle headerStyle = TextStyle(
       fontSize: 42.0,

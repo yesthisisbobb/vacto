@@ -129,8 +129,15 @@ Widget leftContent(BuildContext context, VariablesBloc vBloc) {
                             fontSize: 22.0, fontWeight: FontWeight.w500),
                         textAlign: TextAlign.center,
                       ),
+                      SizedBox(
+                        height: 8.0,
+                      ),
                       Container(
-                        child: Text("[Bendera] [Ranking di negara]"),
+                        height: 26,
+                        child: Image.asset("country-flags/${vBloc.currentUser.nationality}.png"),
+                      ),
+                      SizedBox(
+                        height: 8.0,
                       ),
                       Container(
                         child: Text("[Showcase Achievement]"),
