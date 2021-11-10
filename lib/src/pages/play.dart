@@ -22,7 +22,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   bool newsHasAlreadyInitialized = false;
 
   bool isTimerStarted = false;
-  double maxTime = 5;
+  double maxTime = 180;
   double timerValue = 0;
   Timer timer;
   AnimationController timerColorC;
@@ -35,7 +35,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   int answeredCorrect = 0;
   bool isDraggedToLeft = false;
   bool isDraggedToRight = false;
+  bool canDoNextRound = true; 
   bool isGameOver = false;
+  bool canShowGameOverScreen = false;
 
   AnimationController swipeRightController;
   AnimationController swipeLeftController;
@@ -78,7 +80,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       if (status == AnimationStatus.completed) {
         print("OK Kanan");
         await uploadAnswer();
-        if (nextRound()) swipeRightController.reverse();
+        nextRound();
+        if (isGameOver == false) swipeRightController.reverse();
       }
     });
 
@@ -90,7 +93,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       if (status == AnimationStatus.completed) {
         print("OK Kiri");
         await uploadAnswer();
-        if (nextRound()) swipeLeftController.reverse();
+        nextRound();
+        if (isGameOver == false) swipeLeftController.reverse();
       }
     });
   }
@@ -131,6 +135,11 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     else if (vBloc.swipeDirection == vBloc.CARD_SWIPE_RIGHT) recentAnswer = "legit";
     print("noprob");
 
+    print(vBloc.localS.getItem("id"));
+    print(news[currentRound - 1].id.toString());
+    print(recentAnswer);
+    print(recentScorePoint.toString());
+
     var res = await http.post(Uri.parse("http://localhost:3000/api/answer/upload"),
       body: {
         "user": vBloc.localS.getItem("id"),
@@ -151,13 +160,12 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     }
   }
 
-  bool nextRound(){
-    bool canDoNextRound = true; 
+  nextRound() async {
     setState(() {
       if (vBloc.isGameModeTimed == false) {
         if (currentRound <= maxRound) {
           currentRound++;
-          canDoNextRound =  true;
+          canDoNextRound = true;
         }
         if (currentRound == maxRound + 1) {
           currentRound = maxRound - 1;
@@ -166,11 +174,66 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         }
       } else {
         currentRound++;
-        canDoNextRound =  true;
+        canDoNextRound = true;
       }
     });
+
+    // Perhitungan game over screen
+    if (isGameOver == true) {
+      if(await updateStats()){
+        setState(() {
+          canShowGameOverScreen = true;
+        });
+      }
+    }
     print("currentRound: $currentRound");
     return canDoNextRound;
+  }
+
+  Future<bool> updateStats() async {
+    // user id
+    // gamemode (s standard / t timed / c challenge)
+    // rating (MMR)
+    // tstg (Times Spent on Timed Gamemode)
+    // ca (Correct Answers)
+    // tqf (Total Questions Faced)
+
+    String gameMode = "";
+    String changesToRating = score.toString();
+    String timeAddition;
+    String caAddition = answeredCorrect.toString();
+    String questionAddition = currentRound.toString();
+    
+      // TODO: Need to be changed to detect if user pressed exit before finishing
+    if (vBloc.isGameModeTimed == true) {
+      gameMode = "t";
+      timeAddition = timer.tick.toString();
+    } else {
+      gameMode = "s";
+      timeAddition = "0";
+    }
+
+    print("gamemode");
+
+    var res = await http.post(Uri.parse("http://localhost:3000/api/user/update/stats"),
+      body: {
+        "id": vBloc.currentUser.id,
+        "gamemode": gameMode,
+        "rating": changesToRating,
+        "tstg": timeAddition,
+        "ca": caAddition,
+        "tqf": questionAddition,
+      }
+    );
+    if (res.statusCode == 200) {
+      print("berhasil update");
+    }
+    print("res pertama");
+
+    // Update class user habis proses
+    await vBloc.currentUser.fillOutDataFromID(vBloc.localS.getItem("id"));
+
+    return true;
   }
 
   @override
@@ -216,10 +279,14 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     return FutureBuilder(
       future: Future<List<int>>(() async {
         List<int> result = [];
+        int numOfNews = 10;
 
         if (newsHasAlreadyInitialized == true) return result;
 
-        var res = await http.get(Uri.parse("http://localhost:3000/api/news/generate/10"));
+        // Set news amount to 360 to overcompensate user clicking an answer every second
+        if(vBloc.isGameModeTimed == true) numOfNews = maxTime.round() * 2;
+        
+        var res = await http.get(Uri.parse("http://localhost:3000/api/news/generate/$numOfNews"));
         if (res.statusCode == 200) {
           var jsonData = res.body.toString();
           var parsedJson = json.decode(jsonData);
@@ -267,6 +334,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                       timer = Timer.periodic(Duration(seconds: 1), (timer) {
                         if (timer.tick == maxTime) {
                           timer.cancel();
+                          print(timer.tick);
                           isGameOver = true;
                         }
                         setState(() {
@@ -328,7 +396,17 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
               });
             },
           )
-        )
+        ),
+        Positioned(
+          top: 100,
+          left: 0,
+          child: ElevatedButton(
+            child: Text("Debug upload"),
+            onPressed: () async {
+              print(await updateStats());
+            },
+          )
+        ),
       ],
     );
   }
@@ -376,18 +454,20 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     );
 
     if (isGameOver == true) {
-      return AnimatedContainer(
-        duration: Duration(seconds: 1),
-        height: double.infinity,
-        width: double.infinity,
-        color: Color.fromRGBO(0, 0, 0, 0.5),
-        child: Center(
-          child: Container(
-            child: Stack(
+      if(canShowGameOverScreen){
+        return Container(
+          height: double.infinity,
+          width: double.infinity,
+          color: Color.fromRGBO(0, 0, 0, 0.5),
+          child: Center(
+            child: Container(
+                child: Stack(
               clipBehavior: Clip.none,
               children: [
                 Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
                   child: Container(
                     padding: EdgeInsets.all(32.0),
                     child: Container(
@@ -464,10 +544,13 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                   ),
                 ),
               ],
-            )
+            )),
           ),
-        ),
-      );
+        );
+      }
+      else{
+        return Container();
+      }
     }
     else{
       return Container();
@@ -787,7 +870,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             icon: Icon(Icons.exit_to_app_rounded),
             iconSize: 24,
             onPressed: () {
-              Navigator.pushNamed(context, "/main");
+              timer.cancel();
+              Navigator.pop(context);
             },
           ),
         ],

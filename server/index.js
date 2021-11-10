@@ -109,10 +109,16 @@ app.post("/api/user/register", async (req, res) => {
     let nationality = req.body.nationality;
     let dob = req.body.dob; // Format dd-mm-yyyy
     let gender = req.body.gender;
-    let role = req.body.role;
-
     let pp = "default.png";
     let level = 1;
+    // rating (MMR)
+    let role = req.body.role;
+    // sgp (Standard Games Played)
+    // tgp (Timed Games Played)
+    // tstg (Times Spent on Timed Gamemode)
+    // ca (Correct Answers)
+    // tqf (Total Questions Faced)
+    // na (News Added)
 
     console.log("Data received with following details:", username, password, email, name, nationality, dob, gender, role);
 
@@ -145,7 +151,7 @@ app.post("/api/user/register", async (req, res) => {
     let checkEmail = await executeQuery(conn, `select email from user where email = '${email}'`);
     if(checkEmail.length > 0) return res.status(400).send("Email has already been used");
 
-    let query = `insert into user values('${id}','${username}','${password}','${email}','${name}','${nationality}',STR_TO_DATE('${dob}', "%d-%m-%Y"),'${gender}', '${pp}', ${level}, 0, '${role}')`;
+    let query = `insert into user values('${id}','${username}','${password}','${email}','${name}','${nationality}',STR_TO_DATE('${dob}', "%d-%m-%Y"),'${gender}', '${pp}', ${level}, 0, '${role}', 0, 0, 0, 0, 0, 0)`;
     console.log(`Insert user query: ${query}`);
     
     let registerUser = await executeQuery(conn, query);
@@ -179,6 +185,64 @@ app.get("/api/user/get/:id", async (req, res) => {
     if(checkUser.length < 1) return res.status(400).send("User with such id doesn't exist");
 
     return res.status(200).send(checkUser[0]);
+});
+
+// ------ POST GAME UPDATE USER ------ //
+app.post("/api/user/update/stats", async (req, res) => {
+    // user id
+    let id = req.body.id;
+    // gamemode (s standard / t timed / c challenge)
+    let gamemode = req.body.gamemode;
+    // level -> cuma + 1
+    // Tier 1 100+ || Tier 2 200+ || Tier 3 400+ || Tier 4 800+ || Tier 5  1600+ || Tier 6 3200+ || Tier 7 6400+
+    let level;
+    // rating (MMR)
+    let rating = parseInt(req.body.rating);
+    // sgp (Standard Games Played) -> cuma + 1
+    let sgp;
+    // tgp (Timed Games Played) -> cuma + 1
+    let tgp;
+    // tstg (Times Spent on Timed Gamemode)
+    let tstg = parseInt(req.body.tstg);
+    // ca (Correct Answers)
+    let ca = parseInt(req.body.ca);
+    // tqf (Total Questions Faced)
+    let tqf = parseInt(req.body.tqf);
+
+    let query = `select rating, sgp, tgp, tstg, ca, tqf from user where id='${id}'`;
+    let getUser = await executeQuery(conn, query);
+    if(getUser.length < 1) return res.status(404).send("User not found");
+
+    if (rating + parseInt(getUser[0]["rating"]) > 199) {
+        level = 2;
+    } else if (rating + parseInt(getUser[0]["rating"]) > 399){
+        level = 3;
+    } else if (rating + parseInt(getUser[0]["rating"]) > 799) {
+        level = 4;
+    } else if (rating + parseInt(getUser[0]["rating"]) > 1599) {
+        level = 5;
+    } else if (rating + parseInt(getUser[0]["rating"]) > 3199) {
+        level = 6;
+    } else if (rating + parseInt(getUser[0]["rating"]) > 6399) {
+        level = 7;
+    } else{
+        level = 1;
+    }
+    rating += parseInt(getUser[0]["rating"]);
+    if(gamemode == "s") sgp = parseInt(getUser[0]["sgp"]) + 1;
+    else sgp = parseInt(getUser[0]["sgp"]);
+    if(gamemode == "t") tgp = parseInt(getUser[0]["tgp"]) + 1;
+    else tgp = parseInt(getUser[0]["tgp"]);
+    tstg += parseInt(getUser[0]["tstg"]);
+    ca += parseInt(getUser[0]["ca"]);
+    tqf += parseInt(getUser[0]["tqf"]);
+
+    query = `update user set level=${level}, rating=${rating}, sgp=${sgp}, tgp=${tgp}, tstg=${tstg}, ca=${ca}, tqf=${tqf} where id='${id}'`;
+    console.log(query);
+    let updateUser = await executeQuery(conn, query);
+    if(updateUser["affectedRows"] < 1) return res.status(400).send("Update failed");
+
+    return res.status(200).send("Update successful");
 });
 
 // ------ ADD NEWS ------ //
@@ -222,6 +286,7 @@ app.post("/api/news/add", async (req, res) => {
     return res.status(200).send("News insert successful");
 });
 
+// ------ GET NEWS ------ //
 app.get("/api/news/get/:id", async (req, res) => {
     let id = req.params.id;
     let tags = "";
@@ -257,6 +322,7 @@ app.get("/api/news/get/:id", async (req, res) => {
     return res.status(200).send(result);
 });
 
+// ------ GENERATE NEWS ------ //
 app.get("/api/news/generate/:num", async (req, res) => {
     // TODO: masukno soal bonus & ngefilter news yang 'or' soale 'uc' itu soal bonus
     let num = req.params.num;
@@ -268,6 +334,7 @@ app.get("/api/news/generate/:num", async (req, res) => {
     return res.status(200).send(getGeneratedNews);
 });
 
+// ------ GET NEWS TAGS ------ //
 app.get("/api/news/tags", async (req, res) => {
     let query = `select * from tags`;
     let getTags = await executeQuery(conn, query);
@@ -276,6 +343,7 @@ app.get("/api/news/tags", async (req, res) => {
     return res.status(200).send(getTags);
 });
 
+// ------ UPLOAD ANSWER ------ //
 app.post("/api/answer/upload", async (req, res) => {
     let user = req.body.user;
     let news = req.body.news;
@@ -287,7 +355,7 @@ app.post("/api/answer/upload", async (req, res) => {
     news = parseInt(req.body.news);
     score = parseInt(req.body.score);
     
-    let query = `insert into user_answer values(0, '${user}', ${news}, '${answer}', ${score})`;
+    let query = `insert into user_answer values(0, '${user}', ${news}, CURRENT_TIMESTAMP(), '${answer}', ${score})`;
     let insertAnswer = await executeQuery(conn, query);
     if(insertAnswer["affectedRows"] < 1) return res.status(400).send("Insert failed");
 
