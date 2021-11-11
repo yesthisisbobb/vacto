@@ -1,7 +1,7 @@
 const express = require('express');
 const mysql = require('mysql');
 const multer = require('multer');
-const { query } = require('express');
+const { query, response } = require('express');
 // const request = require('request');
 
 // =========== REQUIREMENTS ===========
@@ -116,6 +116,8 @@ app.post("/api/user/register", async (req, res) => {
     // sgp (Standard Games Played)
     // tgp (Timed Games Played)
     // tstg (Times Spent on Timed Gamemode)
+    // cgp (Challenge Games Played)
+    // cw (Challenge Won)
     // ca (Correct Answers)
     // tqf (Total Questions Faced)
     // na (News Added)
@@ -151,7 +153,7 @@ app.post("/api/user/register", async (req, res) => {
     let checkEmail = await executeQuery(conn, `select email from user where email = '${email}'`);
     if(checkEmail.length > 0) return res.status(400).send("Email has already been used");
 
-    let query = `insert into user values('${id}','${username}','${password}','${email}','${name}','${nationality}',STR_TO_DATE('${dob}', "%d-%m-%Y"),'${gender}', '${pp}', ${level}, 0, '${role}', 0, 0, 0, 0, 0, 0)`;
+    let query = `insert into user values('${id}','${username}','${password}','${email}','${name}','${nationality}',STR_TO_DATE('${dob}', "%d-%m-%Y"),'${gender}', '${pp}', ${level}, 0, '${role}', 0, 0, 0, 0, 0, 0, 0, 0)`;
     console.log(`Insert user query: ${query}`);
     
     let registerUser = await executeQuery(conn, query);
@@ -193,6 +195,8 @@ app.post("/api/user/update/stats", async (req, res) => {
     let id = req.body.id;
     // gamemode (s standard / t timed / c challenge)
     let gamemode = req.body.gamemode;
+    // gamemode (s standard / t timed / c challenge)
+    let wonchallenge = req.body.wonchallenge;
     // level -> cuma + 1
     // Tier 1 100+ || Tier 2 200+ || Tier 3 400+ || Tier 4 800+ || Tier 5  1600+ || Tier 6 3200+ || Tier 7 6400+
     let level;
@@ -204,12 +208,16 @@ app.post("/api/user/update/stats", async (req, res) => {
     let tgp;
     // tstg (Times Spent on Timed Gamemode)
     let tstg = parseInt(req.body.tstg);
+    // cgp (Challenge Games Played) -> cuma + 1
+    let cgp;
+    // cw (Challenge Won) -> cuma + 1
+    let cw;
     // ca (Correct Answers)
     let ca = parseInt(req.body.ca);
     // tqf (Total Questions Faced)
     let tqf = parseInt(req.body.tqf);
 
-    let query = `select rating, sgp, tgp, tstg, ca, tqf from user where id='${id}'`;
+    let query = `select rating, sgp, tgp, tstg, cgp, cw, ca, tqf from user where id='${id}'`;
     let getUser = await executeQuery(conn, query);
     if(getUser.length < 1) return res.status(404).send("User not found");
 
@@ -234,10 +242,14 @@ app.post("/api/user/update/stats", async (req, res) => {
     if(gamemode == "t") tgp = parseInt(getUser[0]["tgp"]) + 1;
     else tgp = parseInt(getUser[0]["tgp"]);
     tstg += parseInt(getUser[0]["tstg"]);
+    if (gamemode == "c") cgp = parseInt(getUser[0]["cgp"]) + 1;
+    else cgp = parseInt(getUser[0]["cgp"]);
+    if (gamemode == "c" && wonchallenge === 'true') cw = parseInt(getUser[0]["cw"]) + 1;
+    else cw = parseInt(getUser[0]["cw"]);
     ca += parseInt(getUser[0]["ca"]);
     tqf += parseInt(getUser[0]["tqf"]);
 
-    query = `update user set level=${level}, rating=${rating}, sgp=${sgp}, tgp=${tgp}, tstg=${tstg}, ca=${ca}, tqf=${tqf} where id='${id}'`;
+    query = `update user set level=${level}, rating=${rating}, sgp=${sgp}, tgp=${tgp}, tstg=${tstg}, cgp=${cgp}, cw=${cw}, ca=${ca}, tqf=${tqf} where id='${id}'`;
     console.log(query);
     let updateUser = await executeQuery(conn, query);
     if(updateUser["affectedRows"] < 1) return res.status(400).send("Update failed");
@@ -353,6 +365,106 @@ app.get("/api/news/tags", async (req, res) => {
     if (getTags.length < 1) return res.status(500).send("Tags not found somehow");
 
     return res.status(200).send(getTags);
+});
+
+// ------ ADD CHALLENGE ------ //
+app.post("/api/challenge/add", async (req, res) => {
+    let questions = req.body.questions;
+    let user1 = req.body.user1;
+    let user2 = req.body.user2;
+    // user1_completed
+    // user2_completed
+    let user1ca = req.body.user1ca;
+    // user2_ca
+
+    if (!questions || !user1 || !user2 || !user1ca) return res.status(400).send("One or more field is missing");
+
+    console.log(questions);
+    console.log(user1);
+    console.log(user2);
+    console.log(user1ca);
+
+    let query = `insert into challenge values(0, CURRENT_TIMESTAMP(), '${questions}', '${user1}', '${user2}', 'y', 'n', ${user1ca}, 0)`;
+    console.log(query);
+    let addChallenge = await executeQuery(conn, query);
+    if(addChallenge["affectedRows"] < 1) return res.status(400).send("Challenge creation failed");
+
+    return res.status(200).send("Challenge created");
+});
+
+// ------ GET CHALLENGE ------ //
+app.get("/api/challenge/get/:id", async (req, res) => {
+    let id = req.params.id;
+
+    if(!id) return res.status(400).send("One of the field is empty");
+
+    id = parseInt(id);
+
+    let query = `select c.*, u.username as challenger from challenge c, user u where c.id=${id} and c.user1 = u.id`;
+    let getChallenge = await executeQuery(conn, query);
+    if(getChallenge.length < 1) return res.status(400).send("Challenge fetch failed");
+
+    return res.status(200).send(getChallenge[0]);
+});
+
+// ------ GET CHALLENGES FOR A USER ------ //
+app.get("/api/challenge/get/for/:userid", async (req, res) => {
+    let userid = req.params.userid;
+
+    if (!userid) return res.status(400).send("One of the field is empty");
+
+    // TODO: dont think challenger is needed here
+    let query = `select c.*, u.username as challenger from challenge c, user u where user2='${userid}' and c.user1 = u.id`;
+    console.log(query);
+    let getChallenges = await executeQuery(conn, query);
+    if (getChallenges.length < 1) return res.status(400).send("Challenges fetch failed");
+
+    return res.status(200).send(getChallenges);
+});
+
+// ------ UPDATE CHALLENGE ------ //
+app.post("/api/challenge/update", async (req, res) => {
+    let id = req.body.id;
+    // user2_completed
+    let user2ca = req.body.user2ca
+
+    let score = req.body.score;
+    let winner = req.body.winner;
+    let loser = req.body.loser;
+
+    if (!id || !user2ca || !score || !winner || !loser) return res.status(400).send("One of the field is empty");
+
+    id = parseInt(id);
+    user2ca = parseInt(user2ca);
+    score = parseInt(score);
+
+    let query = `update challenge set user2_completed = 'y', user2_ca=${user2ca} where id=${id}`;
+    let updateChallenge = await executeQuery(conn, query);
+    if (updateChallenge["affectedRows"] < 1) return res.status(400).send("Challenge update failed");
+
+    if(winner != "none" && loser != "none"){
+        let rating, cw;
+        query = `select rating from user where id='${winner}'`;
+        let getWinner = await executeQuery(conn, query);
+        if (getWinner.length < 1) return res.status(400).send("Get winner failed");
+
+        rating = parseInt(getWinner[0]["rating"]) + score;
+        cw = parseInt(getWinner[0]["cw"]) + 1;
+        query = `update user set rating=${rating}, cw=${cw} where id='${winner}'`;
+        let updateWinner = await executeQuery(conn, query);
+        if (updateWinner["affectedRows"] < 1) return res.status(400).send("Winner update failed");
+
+        query = `select rating from user where id='${loser}'`;
+        let getLoser = await executeQuery(conn, query);
+        if (getLoser.length < 1) return res.status(400).send("Get loser failed");
+
+        rating = parseInt(getLoser[0]["rating"]) - score;
+        query = `update user set rating=${rating} where id='${loser}'`;
+        let updateLoser = await executeQuery(conn, query);
+        if (updateLoser["affectedRows"] < 1) return res.status(400).send("Loser update failed");
+    }
+
+    return res.status(200).send("Challenge update successful");
 });
 
 // ------ UPLOAD ANSWER ------ //

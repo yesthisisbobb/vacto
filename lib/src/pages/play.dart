@@ -34,6 +34,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   int score = 0;
   int recentScorePoint = 0;
   int answeredCorrect = 0;
+  int answeredCorrectOpponent = 0;
+  String challengeStatus = "";
   bool isDraggedToLeft = false;
   bool isDraggedToRight = false;
   bool canDoNextRound = true; 
@@ -194,6 +196,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     // tqf (Total Questions Faced)
 
     String gameMode = "";
+    bool wonChallenge = false;
     String changesToRating = score.toString();
     String timeAddition;
     String caAddition = answeredCorrect.toString();
@@ -202,17 +205,22 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     if (vBloc.isGameModeTimed == true) {
       gameMode = "t";
       timeAddition = timer.tick.toString();
-    } else {
+    } else if (vBloc.isGameModeChallenge == true){
+      changesToRating = "0";
+      gameMode = "c";
+      timeAddition = "0";
+    } else{
       gameMode = "s";
       timeAddition = "0";
     }
 
-    print("gamemode");
+    print("$gameMode");
 
     var res = await http.post(Uri.parse("http://localhost:3000/api/user/update/stats"),
       body: {
         "id": vBloc.currentUser.id,
         "gamemode": gameMode,
+        "wonchallenge": wonChallenge.toString(),
         "rating": changesToRating,
         "tstg": timeAddition,
         "ca": caAddition,
@@ -230,9 +238,83 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     return true;
   }
 
+  uploadChallenge() async{
+    String questions = "";
+    for (var i = 0; i < news.length; i++) {
+      if(i < news.length - 1) questions += "${news[i].id.toString()},";
+      else questions += "${news[i].id.toString()}";
+    }
+
+    print("UPLOAD CHALLENGE -------------------");
+    print(questions);
+    print(vBloc.currentUser.id);
+    print(vBloc.opponentId);
+    print(answeredCorrect.toString());
+
+    var res = await http.post(Uri.parse("http://localhost:3000/api/challenge/add"),
+      body: {
+        "questions": questions,
+        "user1": vBloc.currentUser.id,
+        "user2": vBloc.opponentId,
+        "user1ca": answeredCorrect.toString()
+      }
+    );
+
+    if(res.statusCode == 200) return true;
+    return false;
+  }
+
+  updateChallenge() async {
+    int scoreDiff = ((answeredCorrectOpponent - answeredCorrect).abs()) * 3;
+    String winner, loser;
+    if(answeredCorrectOpponent > answeredCorrect){
+      winner = vBloc.opponentId;
+      loser = vBloc.currentUser.id;
+      setState(() {
+        challengeStatus = "lose";
+      });
+    }
+    else if(answeredCorrectOpponent > answeredCorrect){
+      winner = vBloc.currentUser.id;
+      loser = vBloc.opponentId;
+      setState(() {
+        challengeStatus = "win";
+      });
+    }
+    else{
+      winner = "none";
+      loser = "none";
+      setState(() {
+        challengeStatus = "draw";
+      });
+    }
+    print("$winner");
+    print("$loser");
+    print("$challengeStatus");
+
+    var res = await http.post(Uri.parse("http://localhost:3000/api/challenge/update"),
+      body: {
+        "id": vBloc.challengeId.toString(),
+        "user2ca": answeredCorrect.toString(),
+        "score": scoreDiff.toString(),
+        "winner": winner,
+        "loser": loser
+      }
+    );
+
+    if(res.statusCode == 200) return true;
+    return false;
+  }
+
   gameOverProccess() async {
     // Perhitungan game over screen
     if (isGameOver == true) {
+      if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == false){
+        await uploadChallenge();
+      }
+      if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == true){
+        await updateChallenge();
+      }
       if(await updateStats()){
         setState(() {
           canShowGameOverScreen = true;
@@ -286,24 +368,52 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         List<int> result = [];
         int numOfNews = 10;
 
+        // If news has already been generated, to prevent regenerating news
         if (newsHasAlreadyInitialized == true) return result;
 
-        // Set news amount to 360 to overcompensate user clicking an answer every second
-        if(vBloc.isGameModeTimed == true) numOfNews = maxTime.round() * 2;
-        
-        var res = await http.get(Uri.parse("http://localhost:3000/api/news/generate/$numOfNews"));
-        if (res.statusCode == 200) {
-          var jsonData = res.body.toString();
-          var parsedJson = json.decode(jsonData);
-          
-          for (var item in parsedJson) {
-            result.add(item["id"]);
-          }
+        // If it's a challenge, don't generate news, get the news
+        if (vBloc.isGameModeChallenge == true && vBloc.isChallenged == true) {
+          var res = await http.get(Uri.parse("http://localhost:3000/api/challenge/get/${vBloc.challengeId}"));
+          if (res.statusCode == 200) {
+            var jsonData = res.body.toString();
+            var parsedJson = json.decode(jsonData);
+            
+            print(parsedJson.toString());
+            // Because if challenged, that means this is a second user
+            answeredCorrectOpponent = parsedJson["user1_ca"];
 
-          return result;
-        }
-        else{
-          return result;
+            String receivedIds = parsedJson["questions"];
+            List<String> receivedIdArr = receivedIds.split(",");
+            maxRound = receivedIdArr.length;
+
+            for (var item in receivedIdArr) {
+              result.add(int.parse(item));
+            }
+
+            return result;
+          }
+          else{
+            return result;
+          }
+        } else {
+          // Not a challenge gamemode
+          // Set news amount to 360 to overcompensate user clicking an answer every second
+          if (vBloc.isGameModeTimed == true) numOfNews = maxTime.round() * 2;
+
+          var res = await http.get(
+              Uri.parse("http://localhost:3000/api/news/generate/$numOfNews"));
+          if (res.statusCode == 200) {
+            var jsonData = res.body.toString();
+            var parsedJson = json.decode(jsonData);
+
+            for (var item in parsedJson) {
+              result.add(item["id"]);
+            }
+
+            return result;
+          } else {
+            return result;
+          }
         }
       }),
       builder: (context, snapshot){
@@ -420,15 +530,16 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
   Widget gameOverScreen(){
     String headerText = "Congratulations";
-    if(answeredCorrect < 5) headerText = "Nice try";
-    if(answeredCorrect == 5) headerText = "Well balanced";
 
-    String bottomText = "And answered correctly ";
-    String bottomText2 = "$answeredCorrect ";
-    String bottomText3 = "times out of ";
-    String bottomText4 = "$maxRound ";
-    if (vBloc.isGameModeTimed == true) bottomText4 = "$currentRound ";
-    String bottomText5 = "news article!";
+    if(vBloc.isGameModeChallenge == true){
+      if (challengeStatus == "lose") headerText = "You lost";
+      if (challengeStatus == "win") headerText = "You won";
+      if (challengeStatus == "draw") headerText = "It's a draw";
+    }
+    else{
+      if (answeredCorrect < 5) headerText = "Nice try";
+      if (answeredCorrect == 5) headerText = "Well balanced";
+    }
 
     TextStyle headerStyle = TextStyle(
       fontSize: 42.0,
@@ -446,18 +557,118 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       fontWeight: FontWeight.w500
     );
 
-    RichText bottomTextWidget = RichText(
+    String topText = "You finished the game with a score of";
+    if(vBloc.isChallenged == true) topText = "You finished the game and answered correctly";
+
+    Column addedTopTextWidget = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text("Within a span of 3 minutes",
+          style: otherStyle,
+        ),
+        SizedBox(
+          height: 8.0,
+        )
+      ],
+    );
+
+    Column topTextWidget = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 16.0,
+        ),
+        (vBloc.isGameModeTimed == true) ? addedTopTextWidget : SizedBox.shrink(),
+        Text(
+          "$topText",
+          style: otherStyle,
+        ),
+      ],
+    );
+
+    Column scoreWidget = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 10.0,
+        ),
+        Text(
+          (vBloc.isChallenged == false) ? "$score" : "$answeredCorrect",
+          style: scoreStyle,
+        ),
+      ],
+    );
+
+    
+    String bottomText = "And answered correctly ";
+    String bottomText2 = "$answeredCorrect ";
+    String bottomText3 = "times out of ";
+    String bottomText4 = "$maxRound ";
+    if (vBloc.isGameModeTimed == true) bottomText4 = "$currentRound ";
+    String bottomText5 = "news article!";
+
+    RichText bottomTextV1 = RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        text: bottomText,
-        style: Theme.of(context).textTheme.bodyText2,
-        children: [
-          TextSpan(text: bottomText2, style: otherStyleBold),
-          TextSpan(text: bottomText3),
-          TextSpan(text: bottomText4, style: otherStyleBold),
-          TextSpan(text: bottomText5),
-        ]
-      ),
+          text: bottomText,
+          style: Theme.of(context).textTheme.bodyText2,
+          children: [
+            TextSpan(text: bottomText2, style: otherStyleBold),
+            TextSpan(text: bottomText3),
+            TextSpan(text: bottomText4, style: otherStyleBold),
+            TextSpan(text: bottomText5),
+          ]),
+    );
+
+    int finalRatingChanges = ((answeredCorrectOpponent - answeredCorrect).abs()) * 3;
+    String plusorminus = "";
+    if (challengeStatus == "win") plusorminus = "You took $finalRatingChanges points from your opponent's rating";
+    if (challengeStatus == "lose") plusorminus = "Your opponent's ratings changes by $finalRatingChanges thanks to you";
+
+    Widget scoreChangesWidget = Text(
+      (challengeStatus == "draw")
+        ? "You and your opponent's rating is unchanged"
+        : "$plusorminus",
+      style: otherStyle,
+      textAlign: TextAlign.center,
+    );
+    Column bottomTextV2 = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text("Times compared to your opponent's", style: otherStyle, textAlign: TextAlign.center,),
+        SizedBox(height: 10.0,),
+        Text("$answeredCorrectOpponent", style: scoreStyle, textAlign: TextAlign.center,),
+        SizedBox(height: 10.0,),
+        scoreChangesWidget,
+      ],
+    );
+
+    Column bottomTextWidget = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 10.0,
+        ),
+        Container(
+          width: 220,
+          child: (vBloc.isChallenged == false) ? bottomTextV1 : bottomTextV2,
+        ),
+      ],
+    );
+
+    Row tryAgainButton = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 20.0,
+        ),
+        ElevatedButton(
+          child: Text("Try again"),
+          onPressed: () {
+            Navigator.popAndPushNamed(context, "/play");
+          },
+        ),
+      ]
     );
 
     if (isGameOver == true) {
@@ -485,35 +696,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                             "$headerText!",
                             style: headerStyle,
                           ),
-                          SizedBox(
-                            height: 16.0,
-                          ),
-                          (vBloc.isGameModeTimed == true)
-                              ? Text("Within a span of 3 minutes")
-                              : SizedBox.shrink(),
-                          (vBloc.isGameModeTimed == true)
-                              ? SizedBox(
-                                  height: 8.0,
-                                )
-                              : SizedBox.shrink(),
-                          Text(
-                            "You finished the game with a score of",
-                            style: otherStyle,
-                          ),
-                          SizedBox(
-                            height: 10.0,
-                          ),
-                          Text(
-                            "$score",
-                            style: scoreStyle,
-                          ),
-                          SizedBox(
-                            height: 10.0,
-                          ),
-                          Container(
-                            width: 220,
-                            child: bottomTextWidget,
-                          ),
+                          topTextWidget,
+                          scoreWidget,
+                          bottomTextWidget,
                           SizedBox(
                             height: 30.0,
                           ),
@@ -528,15 +713,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                                   Navigator.popAndPushNamed(context, "/main");
                                 },
                               ),
-                              SizedBox(
-                                width: 20.0,
-                              ),
-                              ElevatedButton(
-                                child: Text("Try again"),
-                                onPressed: () {
-                                  Navigator.popAndPushNamed(context, "/play");
-                                },
-                              ),
+                              (vBloc.isGameModeChallenge == false) ? tryAgainButton : Container(),
                             ],
                           ),
                         ],
@@ -574,8 +751,10 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         elevation: 7,
         child: Container(
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               scorePanel(),
+              correctAnswerPanel(),
             ]
           ),
         )
@@ -584,6 +763,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   }
 
   Widget scorePanel() {
+    String iconPath = "difficulty/${vBloc.complexity}_white.png";
+    if(vBloc.isGameModeChallenge) iconPath = "menu_icon/challenge.png";
+
     return Align(
       alignment: Alignment.centerRight,
       child: Row(
@@ -596,7 +778,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             height: 22,
             child: ColorFiltered(
               colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.primary, BlendMode.srcATop),
-              child: Image.asset("difficulty/hard_white.png"),
+              child: Image.asset("$iconPath"),
             ),
           ),
           SizedBox(
@@ -625,6 +807,53 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         ],
       ),
     );
+  }
+
+  Widget correctAnswerPanel(){
+    if(vBloc.isGameModeChallenge == true){
+      String text = "Correct Answers:";
+      if(vBloc.isChallenged) text = "Your Correct Answers / Opponent's Correct Answers:";
+
+      Text defaultPerText = Text(
+        "10",
+        style: TextStyle(fontWeight: FontWeight.bold),
+      );
+
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("$text"),
+            SizedBox(
+              width: 10.0,
+            ),
+            Text(
+              "$answeredCorrect",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(
+              width: 8.0,
+            ),
+            Text("/"),
+            SizedBox(
+              width: 8.0,
+            ),
+            (vBloc.isChallenged == false) 
+              ? defaultPerText
+              : Text("$answeredCorrectOpponent",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+            SizedBox(
+              width: 22.0,
+            ),
+          ],
+        ),
+      );
+    }
+    else{
+      return Container();
+    }
   }
 
   Widget topContent(){
@@ -878,8 +1107,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           IconButton(
             icon: Icon(Icons.exit_to_app_rounded),
             iconSize: 24,
-            onPressed: () {
-              timer.cancel();
+            onPressed: () async {
+              if(vBloc.isGameModeTimed == true) timer.cancel();
+              await updateStats();
               vBloc.isGameModeTimed = false;
               vBloc.isGameModeChallenge = false;
               Navigator.pop(context);

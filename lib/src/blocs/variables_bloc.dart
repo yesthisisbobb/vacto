@@ -6,13 +6,22 @@ import '../classes/User.dart';
 class VariablesBloc{
   LocalStorage localS = new LocalStorage("user");
   User currentUser;
-  String opponentId = "";
 
   final CARD_SWIPE_RIGHT = "right";
   final CARD_SWIPE_LEFT = "left";
   
   bool isGameModeTimed = false;
+
   bool isGameModeChallenge = false;
+  bool isChallenged = false;
+  String opponentId = "";
+  int challengeId = 0;
+
+  // bool isGameModeChallenge = true;
+  // bool isChallenged = true;
+  // String opponentId = "1103003";
+  // int challengeId = 1;
+
   String complexity = "";
   String swipeDirection = "";
 

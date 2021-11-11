@@ -8,6 +8,8 @@ import 'pages/registersuccess.dart';
 import 'pages/mainmenu.dart';
 import 'pages/play.dart';
 import 'pages/challenge.dart';
+import 'pages/challenge_find.dart';
+import 'pages/challenge_request.dart';
 import 'pages/addnews.dart';
 import 'pages/loadingscreen.dart';
 
@@ -48,6 +50,9 @@ class Vacto extends StatelessWidget {
               "/register/success": (context) =>RegisterSuccess(),
               "/main": (context) => MainMenu(),
               "/play": (context) => Play(),
+              "/challenge": (context) => Challenge(),
+              "/challenge/find": (context) => ChallengeFind(),
+              "/challenge/requests": (context) => ChallengeRequest(),
               "/add": (context) => AddNews(),
               "/loading": (context) => LoadingScreen()
             },
