@@ -55,6 +55,7 @@ class _AddNewsState extends State<AddNews> {
     vB = VariablesProvider.of(context);
 
     return Container(
+      color: Theme.of(context).colorScheme.primary,
       child: Center(
         child: FractionallySizedBox(
           heightFactor: 0.97,
@@ -274,16 +275,22 @@ class _AddNewsState extends State<AddNews> {
                       return Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          ChoiceChip(
-                            label: Text(data[index]["tag"]),
-                            selected: selectedTags.contains(data[index]["id"]),
-                            onSelected: (selected) {
-                              setState(() {
-                                selectedTags.contains(data[index]["id"])
-                                    ? selectedTags.remove(data[index]["id"])
-                                    : selectedTags.add(data[index]["id"]);
-                              });
-                            },
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ChoiceChip(
+                                label: Text(data[index]["tag"]),
+                                selected: selectedTags.contains(data[index]["id"]),
+                                onSelected: (selected) {
+                                  setState(() {
+                                    selectedTags.contains(data[index]["id"])
+                                        ? selectedTags.remove(data[index]["id"])
+                                        : selectedTags.add(data[index]["id"]);
+                                  });
+                                },
+                              ),
+                              SizedBox(height: 8.0,),
+                            ],
                           ),
                           SizedBox(width: 8.0,)
                         ],

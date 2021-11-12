@@ -329,20 +329,20 @@ class _MainMenuState extends State<MainMenu> {
         Navigator.pushNamed(context, "/add");
       }),
       menuItem(context, "menu_icon/leaderboard.png", "Leaderboard", () {
-        print("playtest3");
+        Navigator.pushNamed(context, "/leaderboard");
       }),
       menuItem(context, "menu_icon/profile.png", "Profile", () {
-        print(vBloc.currentUser.toString());
+        Navigator.pushNamed(context, "/profile");
       }),
       menuItem(context, "menu_icon/settings.png", "Settings", () {
         print("playtest5");
       }),
-      menuItem(context, "menu_icon/view-data.png", "View Data", () {
-        print("playtest6");
-      }),
-      menuItem(context, "menu_icon/verify.png", "Verify Questions", () {
+      (vBloc.currentUser.role != "n") ? menuItem(context, "menu_icon/view-data.png", "View Data", () {
+        Navigator.pushNamed(context, "/data/view");
+      }) : Container(),
+      (vBloc.currentUser.role == "a") ? menuItem(context, "menu_icon/verify.png", "Verify Questions", () {
         print("playtest7");
-      }),
+      }) : Container(),
     ];
   }
 

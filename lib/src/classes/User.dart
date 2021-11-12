@@ -14,6 +14,14 @@ class User{
   int level;
   int rating;
   String role;
+  int sgp;
+  int tgp;
+  int tstg;
+  int cgp;
+  int cw;
+  int ca;
+  int tqf;
+  int na;
 
   User();
 
@@ -74,6 +82,14 @@ class User{
       // print("rating: ${parsedData['rating']}");
       this.role = parsedData["role"];
       // print("role: ${parsedData['role']}");
+      this.sgp = parsedData["sgp"];
+      this.tgp = parsedData["tgp"];
+      this.tstg = parsedData["tstg"];
+      this.cgp = parsedData["cgp"];
+      this.cw = parsedData["cw"];
+      this.ca = parsedData["ca"];
+      this.tqf = parsedData["tqf"];
+      this.na = parsedData["na"];
 
       return "User created";
     }

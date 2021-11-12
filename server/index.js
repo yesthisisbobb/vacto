@@ -269,6 +269,18 @@ app.get("/api/users/get/:num", async (req, res) => {
     return res.status(200).send(getUsers);
 });
 
+// ------ GET USERS SORTED ------ //
+// Not to be confused with get 'user', which only fetches a singular data
+app.get("/api/users/get/sorted/:num", async (req, res) => {
+    let num = req.params.num;
+
+    let query = `select id from user order by rating DESC limit ${num}`;
+    let getUsers = await executeQuery(conn, query);
+    if (getUsers.length < 1) return res.status(400).send("Failed to get users");
+
+    return res.status(200).send(getUsers);
+});
+
 // ------ ADD NEWS ------ //
 app.post("/api/news/add", async (req, res) => {
     // TODO: Gambar & status news udah di verify atau belom
@@ -314,6 +326,7 @@ app.post("/api/news/add", async (req, res) => {
 app.get("/api/news/get/:id", async (req, res) => {
     let id = req.params.id;
     let tags = "";
+    let references = "";
 
     let query = `select * from news where id=${id}`;
     let getNews = await executeQuery(conn, query);
@@ -321,12 +334,22 @@ app.get("/api/news/get/:id", async (req, res) => {
 
     query = `select t.tag as tag from tags t, news_tag nt WHERE nt.news = ${id} and nt.tag = t.id`;
     let getTags = await executeQuery(conn, query);
-    // if (getTags.length < 1) return res.status(400).send("News retrieval failed");
+    // if (getTags.length < 1) return res.status(400).send("Tags retrieval failed");
+
+    query = `select nr.reference as 'references' from news n, news_reference nr WHERE n.id = ${id} and nr.news = n.id`;
+    let getReferences = await executeQuery(conn, query);
+    // if (getReferences.length < 1) return res.status(400).send("References retrieval failed");
 
     for (let i = 0; i < getTags.length; i++) {
         const tag = getTags[i]["tag"];
         if(i < getTags.length - 1) tags += `${tag},`;
         else tags += tag;
+    }
+
+    for (let i = 0; i < getReferences.length; i++) {
+        const ref = getReferences[i]["references"];
+        if (i < getReferences.length - 1) references += `${ref},`;
+        else references += ref;
     }
 
     let result = {
@@ -341,6 +364,7 @@ app.get("/api/news/get/:id", async (req, res) => {
         "sub_type": getNews[0]["sub_type"],
         "answer": getNews[0]["answer"],
         "tags": tags,
+        "references": references
     };
 
     return res.status(200).send(result);
@@ -484,6 +508,27 @@ app.post("/api/answer/upload", async (req, res) => {
     if(insertAnswer["affectedRows"] < 1) return res.status(400).send("Insert failed");
 
     return res.status(200).send("Insert successful");
+});
+
+app.get("/api/answer/get/formatted/:id", async (req, res) => {
+    let id = req.params.id;
+
+    if(!id) return res.status(400).send("Param is empty");
+
+    // PASTIKAN SAMA MBEK SG BAWAH
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.id=${id} and ua.user = u.id and ua.news = n.id`;
+    let getAnswer = await executeQuery(conn, query);
+    if (getAnswer.length < 1) return res.status(500).send("Answer retrieval failed");
+
+    return res.status(200).send(getAnswer[0]);
+});
+
+app.get("/api/answer/get/all", async (req, res) => {
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.user = u.id and ua.news = n.id`;
+    let getAllAnswers = await executeQuery(conn, query);
+    if (getAllAnswers.length < 1) return res.status(500).send("Answers retrieval failed");
+
+    return res.status(200).send(getAllAnswers);
 });
 
 app.listen(3000, (req, res) => console.log("Listening on port 3000..."));

@@ -42,6 +42,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   bool isGameOver = false;
   bool canShowGameOverScreen = false;
 
+  String reference1 = "";
+  String reference2 = "";
+
   AnimationController swipeRightController;
   AnimationController swipeLeftController;
 
@@ -107,28 +110,46 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   validateAnswer(String dir){
     if(dir == vBloc.CARD_SWIPE_LEFT && news[currentRound - 1].answer == "hoax"){
       print("bener hoax");
+
+      if (news[currentRound - 1].type == "or") {
+        recentScorePoint = Random().nextInt(6) + 5;
+      } else if(news[currentRound - 1].type == "uc"){
+        recentScorePoint = Random().nextInt(4) + 1;
+      }
+      print(recentScorePoint.toString());
+
       setState(() {
-        recentScorePoint = Random().nextInt(7) + 5;
-        print(recentScorePoint.toString());
         score += recentScorePoint;
         answeredCorrect++;
       });
     }
     else if(dir == vBloc.CARD_SWIPE_RIGHT && news[currentRound - 1].answer == "legit"){
       print("bener legit");
+      
+      if (news[currentRound - 1].type == "or") {
+        recentScorePoint = Random().nextInt(6) + 5;
+      } else if (news[currentRound - 1].type == "uc") {
+        recentScorePoint = Random().nextInt(4) + 1;
+      }
+      print(recentScorePoint.toString());
+
       setState(() {
-        recentScorePoint = Random().nextInt(7) + 5;
-        print(recentScorePoint.toString());
         score += recentScorePoint;
         answeredCorrect++;
       });
     }
     else{
       print("salah");
+
+      if (news[currentRound - 1].type == "or") {
+        recentScorePoint = Random().nextInt(6) + 2;
+      } else if (news[currentRound - 1].type == "uc") {
+        recentScorePoint = Random().nextInt(4) + 1;
+      }
+      print(recentScorePoint.toString());
+
       setState(() {
-        recentScorePoint = Random().nextInt(7) + 2;
-        print(recentScorePoint.toString());
-        score -= recentScorePoint;
+        (news[currentRound - 1].type == "uc") ? score += recentScorePoint : score -= recentScorePoint;
       });
     }
     print("score: $score");
@@ -336,8 +357,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
     return Scaffold(
       body: Container(
-        child: initProcess()
+        child: initProcess(context)
       ),
+      endDrawer: drawerReference(),
     );
   }
 
@@ -362,7 +384,38 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     );
   }
 
-  Widget initProcess(){
+  Widget drawerReference(){
+    return Drawer(
+      child: ListView(
+        children: [
+          DrawerHeader(
+            decoration:
+                BoxDecoration(color: Theme.of(context).colorScheme.primary),
+            child: Text(
+              "News Article References",
+              style: TextStyle(color: Colors.white, fontSize: 24.0),
+            ),
+          ),
+          ListTile(
+            leading: Text("I"),
+            title: Text("Reference 1"),
+            onTap: (){
+              print(reference1);
+            },
+          ),
+          (vBloc.complexity != "normal") ? ListTile(
+            leading: Text("II"),
+            title: Text("Reference 2"),
+            onTap: (){
+              print(reference2);
+            },
+          ) : Container(),
+        ],
+      ),
+    );
+  }
+
+  Widget initProcess(BuildContext context){
     return FutureBuilder(
       future: Future<List<int>>(() async {
         List<int> result = [];
@@ -444,6 +497,31 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                   if (news.isNotEmpty) {
                     newsHasAlreadyInitialized = true;
 
+                    // Initialize reference
+                    // if (news[currentRound - 1].references.length == 1 &&
+                    //     news[currentRound - 1].references[0] == "") {
+                    //   print("No reference available");
+                    // } else {
+                    //   if (vBloc.complexity == "easy") {
+                    //     if (news[currentRound - 1].references[0] != ""){
+                    //       setState(() {
+                    //         reference1 = news[currentRound - 1].references[0];
+                    //       });
+                    //     }
+                    //   } else if (vBloc.complexity == "normal") {
+                    //     if (news[currentRound - 1].references[0] != ""){
+                    //       setState(() {
+                    //         reference1 = news[currentRound - 1].references[0];
+                    //       });
+                    //     }
+                    //     if (news[currentRound - 1].references[1] != ""){
+                    //       setState(() {
+                    //         reference2 = news[currentRound - 1].references[1];
+                    //       });
+                    //     }
+                    //   }
+                    // }
+
                     // TIMER INIT
                     if(isTimerStarted == false && vBloc.isGameModeTimed){
                       timer = Timer.periodic(Duration(seconds: 1), (timer) async {
@@ -461,7 +539,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                       isTimerStarted = true;
                     }
 
-                    return baseWidget();
+                    return baseWidget(context);
                   }
                   else{
                     return Container(
@@ -476,7 +554,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             );
           }
           else if(newsHasAlreadyInitialized == true){
-            return baseWidget();
+            return baseWidget(context);
           }
           else{
             return Container(
@@ -491,7 +569,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     );
   }
 
-  Widget baseWidget(){
+  Widget baseWidget(BuildContext context){
     return Stack(
       children: [
         Column(
@@ -502,29 +580,53 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           ],
         ),
         gameOverScreen(),
-        Positioned(
-          top: 70,
-          left: 0,
-          child: ElevatedButton(
-            child: Text("Debug game over"),
-            onPressed: (){
-              setState(() {
-                isGameOver = !isGameOver;
-              });
-            },
-          )
-        ),
-        Positioned(
-          top: 100,
-          left: 0,
-          child: ElevatedButton(
-            child: Text("Debug upload"),
-            onPressed: () async {
-              print(await updateStats());
-            },
-          )
-        ),
+        // gameOverDebug(),
+        // uploadDebug(),
+        (vBloc.complexity != "hard") ? drawerButton(context) : Container(),
       ],
+    );
+  }
+
+  Widget gameOverDebug(){
+    return Positioned(
+      top: 70,
+      left: 0,
+      child: ElevatedButton(
+        child: Text("Debug game over"),
+        onPressed: (){
+          setState(() {
+            isGameOver = !isGameOver;
+          });
+        },
+      )
+    );
+  }
+
+  Widget uploadDebug(){
+    return Positioned(
+      top: 100,
+      left: 0,
+      child: ElevatedButton(
+        child: Text("Debug upload"),
+        onPressed: () async {
+          print(await updateStats());
+        },
+      )
+    ); 
+  }
+
+  Widget drawerButton(BuildContext context){
+    return Positioned(
+      right: 10,
+      top: 70,
+      child: IconButton(
+        icon: Icon(Icons.article_rounded),
+        iconSize: 40.0,
+        color: Colors.white,
+        onPressed: (){
+          Scaffold.of(context).openEndDrawer();
+        },
+      )
     );
   }
 
@@ -985,6 +1087,38 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   }
 
   Widget mainCard() {
+    Column picWidget = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          height: 400,
+          child: Image.asset(
+            "placeholders/wide-pic.png",
+            fit: BoxFit.fitWidth,
+          ),
+        ),
+        SizedBox(
+          height: 18.0,
+        ),
+      ],
+    );
+    Column descWidget = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          child: Text(
+            news[currentRound - 1].content,
+            style: TextStyle(
+              fontSize: 16,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 18.0,
+        ),
+      ],
+    );
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
       elevation: 8,
@@ -1022,28 +1156,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
               SizedBox(
                 height: 18.0,
               ),
-              Container(
-                height: 400,
-                child: Image.asset(
-                  "placeholders/wide-pic.png",
-                  fit: BoxFit.fitWidth,
-                ),
-              ),
-              SizedBox(
-                height: 18.0,
-              ),
-              Container(
-                child: Text(
-                  news[currentRound - 1].content,
-                  style: TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 18.0,
-              ),
-              Text(news[currentRound - 1].source),
+              (news[currentRound - 1].subtype != "url") ? picWidget : Container(),
+              (news[currentRound - 1].subtype == "nor") ? descWidget : Container(),
+              (news[currentRound - 1].subtype != "pho") ? Text(news[currentRound - 1].source) : Container(),
               SizedBox(
                 height: 36.0,
               ),

@@ -11,6 +11,9 @@ import 'pages/challenge.dart';
 import 'pages/challenge_find.dart';
 import 'pages/challenge_request.dart';
 import 'pages/addnews.dart';
+import 'pages/leaderboard.dart';
+import 'pages/profile.dart';
+import 'pages/viewdata.dart';
 import 'pages/loadingscreen.dart';
 
 import 'pages/paintingground.dart';
@@ -54,6 +57,9 @@ class Vacto extends StatelessWidget {
               "/challenge/find": (context) => ChallengeFind(),
               "/challenge/requests": (context) => ChallengeRequest(),
               "/add": (context) => AddNews(),
+              "/leaderboard": (context) => Leaderboard(),
+              "/profile": (context) => Profile(),
+              "/data/view": (context) => ViewData(),
               "/loading": (context) => LoadingScreen()
             },
             debugShowMaterialGrid: false,

@@ -13,6 +13,7 @@ class News{
   String subtype;
   String answer;
   List<String> tags;
+  List<String> references;
 
   News();
 
@@ -47,6 +48,9 @@ class News{
       String temp = parsedData["tags"];
       tags = temp.split(",");
       // print("tags: $tags");
+      String temp2 = parsedData["references"];
+      references = temp2.split(",");
+      // print("references: $references");
 
       return "News with id: $id succesfully created";
     }
