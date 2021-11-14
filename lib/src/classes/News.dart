@@ -41,7 +41,7 @@ class News{
       // print("source: $source");
       this.type = parsedData["type"];
       // print("type: $type");
-      this.subtype = parsedData["subtype"];
+      this.subtype = parsedData["sub_type"];
       // print("subtype: $subtype");
       this.answer = parsedData["answer"];
       // print("answer: $answer");

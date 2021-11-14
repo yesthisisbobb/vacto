@@ -582,6 +582,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         gameOverScreen(),
         // gameOverDebug(),
         // uploadDebug(),
+        newsInfoDebug(),
         (vBloc.complexity != "hard") ? drawerButton(context) : Container(),
       ],
     );
@@ -613,6 +614,19 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         },
       )
     ); 
+  }
+
+  Widget newsInfoDebug() {
+    return Positioned(
+        top: 130,
+        left: 0,
+        child: ElevatedButton(
+          child: Text("Debug News Info"),
+          onPressed: () {
+            print(news[currentRound - 1].toString());
+            print(news[currentRound - 1].subtype);
+          },
+        ));
   }
 
   Widget drawerButton(BuildContext context){
