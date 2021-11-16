@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../blocs/variables_provider.dart';
 import '../classes/News.dart';
@@ -39,6 +40,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   bool isDraggedToLeft = false;
   bool isDraggedToRight = false;
   bool canDoNextRound = true; 
+  bool isChallengeWithdrawn = false;
   bool isGameOver = false;
   bool canShowGameOverScreen = false;
 
@@ -105,6 +107,22 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         if (isGameOver == false) swipeLeftController.reverse();
       }
     });
+  }
+
+  getReference(int idx) {
+    SnackBar notif = SnackBar(
+      content: Text("Reference isn't available for this news article"),
+    );
+
+    if(news[currentRound - 1].references.length < idx){
+      ScaffoldMessenger.of(context).showSnackBar(notif);
+    }
+    else if (news[currentRound - 1].references[idx - 1].toString() != "") {
+      launch(news[currentRound - 1].references[idx - 1].toString());
+    }
+    else{
+      ScaffoldMessenger.of(context).showSnackBar(notif);
+    }
   }
 
   validateAnswer(String dir){
@@ -251,7 +269,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     if (res.statusCode == 200) {
       print("berhasil update");
     }
-    print("res pertama");
 
     // Update class user habis proses
     await vBloc.currentUser.fillOutDataFromID(vBloc.localS.getItem("id"));
@@ -286,16 +303,17 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   }
 
   updateChallenge() async {
+    print("MASUK UPDATE CHALLENGE ====");
     int scoreDiff = ((answeredCorrectOpponent - answeredCorrect).abs()) * 3;
     String winner, loser;
-    if(answeredCorrectOpponent > answeredCorrect){
+    if(answeredCorrectOpponent > answeredCorrect || isChallengeWithdrawn == true){
       winner = vBloc.opponentId;
       loser = vBloc.currentUser.id;
       setState(() {
         challengeStatus = "lose";
       });
     }
-    else if(answeredCorrectOpponent > answeredCorrect){
+    else if(answeredCorrectOpponent < answeredCorrect){
       winner = vBloc.currentUser.id;
       loser = vBloc.opponentId;
       setState(() {
@@ -342,6 +360,65 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         });
       }
     }
+  }
+  
+  Future<bool> showExitDialog() async {
+    String titleText = "Quit?",
+      text1 = "Are you sure you want to quit?",
+      text2 = "If you quit, the ongoing game will be counted as a loss",
+      buttonText = "Quit game";
+    
+    if (vBloc.isGameModeChallenge == true && vBloc.isChallenged == false) {
+      text2 = "If you quit, this challenge will be discarded";
+      buttonText = "Discard Challenge";
+    }
+    else if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == true){
+      text1 = "Are you sure you want to withdraw from challenge?";
+      text2 = "If you quit, this challenge will be counted as a loss";
+      buttonText = "Withdraw";
+    }
+
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context){
+        return AlertDialog(
+          title: Text(titleText),
+          titlePadding: EdgeInsets.only(top: 24.0, left: 24.0),
+          actionsPadding: EdgeInsets.all(12.0),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  text1,
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.w600
+                  ),
+                ),
+                Text(text2)
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              child: Text(buttonText),
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+            ),
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+            )
+          ],
+        );
+      }
+    );
   }
 
   @override
@@ -400,14 +477,14 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             leading: Text("I"),
             title: Text("Reference 1"),
             onTap: (){
-              print(reference1);
+              getReference(1);
             },
           ),
           (vBloc.complexity != "normal") ? ListTile(
             leading: Text("II"),
             title: Text("Reference 2"),
             onTap: (){
-              print(reference2);
+              getReference(2);
             },
           ) : Container(),
         ],
@@ -582,7 +659,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         gameOverScreen(),
         // gameOverDebug(),
         // uploadDebug(),
-        newsInfoDebug(),
+        // newsInfoDebug(),
         (vBloc.complexity != "hard") ? drawerButton(context) : Container(),
       ],
     );
@@ -826,7 +903,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                                 onPressed: () {
                                   vBloc.isGameModeTimed = false;
                                   vBloc.isGameModeChallenge = false;
-                                  Navigator.popAndPushNamed(context, "/main");
+                                  vBloc.isChallenged = false;
+
+                                  Navigator.pop(context);
                                 },
                               ),
                               (vBloc.isGameModeChallenge == false) ? tryAgainButton : Container(),
@@ -1237,11 +1316,16 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             icon: Icon(Icons.exit_to_app_rounded),
             iconSize: 24,
             onPressed: () async {
-              if(vBloc.isGameModeTimed == true) timer.cancel();
-              await updateStats();
-              vBloc.isGameModeTimed = false;
-              vBloc.isGameModeChallenge = false;
-              Navigator.pop(context);
+              bool confirmExit = await showExitDialog();
+              if (confirmExit == true) {
+                setState(() { isGameOver = true; });
+                
+                if (vBloc.isGameModeTimed == true) timer.cancel();
+
+                if (vBloc.isGameModeChallenge == true && vBloc.isChallenged == true) isChallengeWithdrawn = true;
+
+                await gameOverProccess();
+              }
             },
           ),
         ],

@@ -43,14 +43,14 @@ class Requests extends DataTableSource{
     vBloc.isChallenged = true;
     vBloc.opponentId = opponentId;
     vBloc.challengeId = challengeId;
-    Navigator.pushNamed(context, "/play");
+    Navigator.popAndPushNamed(context, "/play");
   }
 
   @override
   DataRow getRow(int index) {
     if (challengeList.length > 0) {
       bool canPlay = false;
-      int scoreDiff = (challengeList[index].user1Ca - challengeList[index].user2Ca).abs();
+      int scoreDiff = (challengeList[index].user1Ca - challengeList[index].user2Ca).abs() * 3;
       String plusorminus = "";
       Color statusColor = Colors.black;
 
@@ -92,7 +92,9 @@ class Requests extends DataTableSource{
         }
       );
 
-      String dateText = "${challengeList[index].date.day}/${challengeList[index].date.month}/${challengeList[index].date.year} || ${challengeList[index].date.hour}:${challengeList[index].date.minute}" ;
+      String hourText = (challengeList[index].date.hour < 10) ? "0${challengeList[index].date.hour}" : "${challengeList[index].date.hour}";
+      String minuteText = (challengeList[index].date.minute < 10) ? "0${challengeList[index].date.minute}" : "${challengeList[index].date.minute}";
+      String dateText = "${challengeList[index].date.day}/${challengeList[index].date.month}/${challengeList[index].date.year} at $hourText:$minuteText" ;
       return DataRow(cells: [
         DataCell(
           Align(

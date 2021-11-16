@@ -468,7 +468,7 @@ app.post("/api/challenge/update", async (req, res) => {
 
     if(winner != "none" && loser != "none"){
         let rating, cw;
-        query = `select rating from user where id='${winner}'`;
+        query = `select rating, cw from user where id='${winner}'`;
         let getWinner = await executeQuery(conn, query);
         if (getWinner.length < 1) return res.status(400).send("Get winner failed");
 
