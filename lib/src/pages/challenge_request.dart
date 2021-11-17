@@ -92,7 +92,8 @@ class Requests extends DataTableSource{
         }
       );
 
-      String hourText = (challengeList[index].date.hour < 10) ? "0${challengeList[index].date.hour}" : "${challengeList[index].date.hour}";
+      String hourText = (challengeList[index].date.hour + 7 < 10) ? "0${challengeList[index].date.hour + 7}" : "${challengeList[index].date.hour + 7}";
+      if (challengeList[index].date.hour + 7 < 23) hourText = "${challengeList[index].date.hour + 7 - 24}";
       String minuteText = (challengeList[index].date.minute < 10) ? "0${challengeList[index].date.minute}" : "${challengeList[index].date.minute}";
       String dateText = "${challengeList[index].date.day}/${challengeList[index].date.month}/${challengeList[index].date.year} at $hourText:$minuteText" ;
       return DataRow(cells: [

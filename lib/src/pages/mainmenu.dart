@@ -1,7 +1,10 @@
 import 'dart:js';
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:vacto/src/classes/Feed.dart';
 import 'package:vacto/src/classes/User.dart';
 import 'package:vacto/src/pages/loadingscreen.dart';
 
@@ -17,10 +20,14 @@ class MainMenu extends StatefulWidget {
 class _MainMenuState extends State<MainMenu> {
   // TODO: make live feed of people, prolly on left side of screen
   VariablesBloc vBloc;
+  List<Feed> feeds;
+
+  String feedType = "";
 
   @override
   Widget build(BuildContext context) {
     vBloc = VariablesProvider.of(context);
+    feeds = [];
     context = this.context;
 
     return FutureBuilder(
@@ -83,7 +90,7 @@ class _MainMenuState extends State<MainMenu> {
               ),
               Image(
                 image: AssetImage("vacto_full.png"),
-                width: 220,
+                height: 42,
               ),
               SizedBox(
                 height: 20,
@@ -98,7 +105,7 @@ class _MainMenuState extends State<MainMenu> {
                 shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
                 elevation: 5.0,
                 child: Container(
-                  padding: EdgeInsets.all(30.0),
+                  padding: EdgeInsets.all(24.0),
                   child: Center(
                     child: Column(
                       children: [
@@ -109,35 +116,42 @@ class _MainMenuState extends State<MainMenu> {
                                 scale: 0.5),
                             backgroundColor:
                                 Theme.of(context).colorScheme.primary,
-                            radius: 60,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 12.0,
-                        ),
-                        Container(
-                          child: Image(
-                            image: AssetImage(
-                                "tiers/tier${vBloc.currentUser.level}.png"),
-                            height: 32,
+                            radius: 48,
                           ),
                         ),
                         SizedBox(
                           height: 8.0,
                         ),
-                        Text(
-                          vBloc.currentUser.username,
-                          style: TextStyle(
-                              fontSize: 22.0, fontWeight: FontWeight.w500),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(
-                          height: 8.0,
-                        ),
-                        Container(
-                          height: 26,
-                          child: Image.asset(
-                              "country-flags/${vBloc.currentUser.nationality}.png"),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          alignment: WrapAlignment.center,
+                          direction: Axis.horizontal,
+                          children: [
+                            Container(
+                              height: 18,
+                              child: Image.asset(
+                                  "country-flags/${vBloc.currentUser.nationality}.png"),
+                            ),
+                            SizedBox(
+                              width: 12.0,
+                            ),
+                            Text(
+                              vBloc.currentUser.username,
+                              style: TextStyle(
+                                  fontSize: 22.0, fontWeight: FontWeight.w500),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(
+                              width: 12.0,
+                            ),
+                            Container(
+                              child: Image(
+                                image: AssetImage(
+                                    "tiers/tier${vBloc.currentUser.level}.png"),
+                                height: 24,
+                              ),
+                            ),
+                          ],
                         ),
                         SizedBox(
                           height: 8.0,
@@ -146,7 +160,7 @@ class _MainMenuState extends State<MainMenu> {
                           child: Text("[Showcase Achievement]"),
                         ),
                         SizedBox(
-                          height: 12.0,
+                          height: 10.0,
                         ),
                         Container(
                           child: ElevatedButton(
@@ -174,8 +188,130 @@ class _MainMenuState extends State<MainMenu> {
                   ),
                 ),
               ),
+              SizedBox(height: 12.0,),
+              Expanded(
+                child: Card(
+                  borderOnForeground: true,
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(70.0))),
+                  shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
+                  elevation: 5.0,
+                  child: Container(
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              OutlinedButton(
+                                child: Text("Global"),
+                                onPressed: (){
+                                  setState(() {
+                                    feedType = "";
+                                  });
+                                }
+                              ),
+                              OutlinedButton(
+                                child: Text("Local"),
+                                onPressed: (){
+                                  setState(() {
+                                    feedType = vBloc.currentUser.nationality;
+                                  });
+                                }
+                              ),
+                            ]
+                          ),
+                          Expanded(
+                            child: feed(),
+                          ),
+                        ],
+                      )
+                    ),
+                  ),
+                ),
+              ),
             ],
           )),
+    );
+  }
+
+  Widget feed(){
+    vBloc.feedTypeChange(feedType);
+
+    return StreamBuilder(
+      stream: vBloc.feedTypeStream,
+      builder: (context, snapshot){
+        print("Masuk streambuilder feed");
+        print(snapshot);
+        if (snapshot.hasData) {
+          return FutureBuilder(
+            future: Future<List<Feed>>(() async {
+              String nationality = snapshot.data; // global/local. kalo ada isi e brati local
+              String url = "http://localhost:3000/api/feed/get/global/";
+              if(nationality != "") url = "http://localhost:3000/api/feed/get/local/$nationality";
+              print(url);
+
+              var res = await http.get(Uri.parse(url));
+              if(res.statusCode == 200){
+                var jsonData = res.body.toString();
+                var parsedData = json.decode(jsonData);
+
+                List<Feed> tempArr = [];
+                for (var item in parsedData) {
+                  Feed temp = Feed(item["id"], item["date"], item["content"], item["user1"], item["user2"], item["username"]);
+                  tempArr.add(temp);
+                }
+
+                print(tempArr);
+                return tempArr;
+              }
+
+              return [];
+            }),
+            builder: (context, snapshot){
+              print("Masuk futurebuilder feed");
+              print(snapshot);
+              if (snapshot.hasData) {
+                feeds = List.castFrom(snapshot.data);
+                print(feeds);
+                print(feeds.length);
+                if(feeds.isNotEmpty){
+                  return ListView(
+                    reverse: true,
+                    children: List<Widget>.generate(feeds.length, (index) {
+                      return Container(
+                        child: Text(feeds[index].toString()),
+                      );
+                    }),
+                  );
+                }
+                else{
+                  return CircularProgressIndicator();
+                }
+              }
+              else{
+                return CircularProgressIndicator();
+              }
+            }
+          );
+        }
+        else{
+          return CircularProgressIndicator();
+        }
+      }
+    );
+  }
+
+  Widget feedItem(String text){
+    return Container(
+      width: double.infinity,
+      color: Colors.red,
+      child: Text(text),
     );
   }
 
@@ -335,7 +471,7 @@ class _MainMenuState extends State<MainMenu> {
         Navigator.pushNamed(context, "/profile");
       }),
       menuItem(context, "menu_icon/settings.png", "Settings", () {
-        print("playtest5");
+        print("setting");
       }),
       (vBloc.currentUser.role != "n") ? menuItem(context, "menu_icon/view-data.png", "View Data", () {
         Navigator.pushNamed(context, "/data/view");

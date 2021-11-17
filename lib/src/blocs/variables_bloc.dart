@@ -26,11 +26,16 @@ class VariablesBloc{
   String swipeDirection = "";
 
   // STREAMS ZONE
+  final feedTypeController = BehaviorSubject<String>();
+  feedTypeChange(String type) => feedTypeController.sink.add(type);
+  Stream<String> get feedTypeStream => feedTypeController.stream;
+
   final cardDirectionController = BehaviorSubject<String>();
   addCardDirection(String dir) => cardDirectionController.sink.add(dir);
   Stream<String> get cardDirectionStream => cardDirectionController.stream;
 
   dispose(){
+    feedTypeController.close();
     cardDirectionController.close();
   }
 }

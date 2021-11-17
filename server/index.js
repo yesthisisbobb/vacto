@@ -100,6 +100,25 @@ app.get("/api/countries/get/:country", async (req, res) => {
     }
 });
 
+// ------ GET FEEDS GLOBAL ------ //
+app.get("/api/feed/get/global/", async (req, res) => {
+    let query = `select f.*, u.username from feed f, user u where f.user1 = u.id order by f.date DESC LIMIT 30`;
+    let getFeed = await executeQuery(conn, query);
+    if(getFeed.length < 1) return res.status(400).send("Failed getting feed");
+
+    return res.status(200).send(getFeed);
+});
+
+// ------ GET FEEDS LOCAL ------ //
+app.get("/api/feed/get/local/:nat", async (req, res) => {
+    let nat = req.params.nat; // global/local
+    let query = `select f.*, u.username from feed f, user u where f.user1 = u.id and u.nationality = '${nat}' order by f.date DESC LIMIT 30`;
+    let getFeed = await executeQuery(conn, query);
+    if (getFeed.length < 1) return res.status(400).send("Failed getting feed");
+
+    return res.status(200).send(getFeed);
+});
+
 // ------ USER REGISTER ------ //
 app.post("/api/user/register", async (req, res) => {
     let username = req.body.username;

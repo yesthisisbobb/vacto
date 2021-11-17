@@ -17,14 +17,41 @@ class Login extends StatelessWidget{
   }
 
   Widget loginInputs(BuildContext context, VariablesBloc vBloc, LoginBloc lBloc){
+    double wf = 0.26, imgWidthP = 0.35;
+    if (MediaQuery.of(context).size.width <= 1000) {
+      wf = 0.4;
+    }
+    if (MediaQuery.of(context).size.width <= 700) {
+      wf = 0.6;
+      imgWidthP = 0.5;
+    }
+    if (MediaQuery.of(context).size.width <= 500) {
+      wf = 0.9;
+      imgWidthP = 0.6;
+    }
+
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
       child: Stack(
         children: [
+          Container(
+            child: Image(
+              image: AssetImage("login_page/bg-decor-top-left.png"),
+              width: MediaQuery.of(context).size.width * imgWidthP,
+            ),
+            alignment: Alignment.topLeft,
+          ),
+          Container(
+            child: Image(
+              image: AssetImage("login_page/bg-decor-bot-right.png"),
+              width: MediaQuery.of(context).size.width * imgWidthP,
+            ),
+            alignment: Alignment.bottomRight,
+          ),
           Center(
             child: FractionallySizedBox(
-              widthFactor: 0.26,
+              widthFactor: wf,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
@@ -45,20 +72,6 @@ class Login extends StatelessWidget{
               ),
             ),
           ),
-          Container(
-            child: Image(
-              image: AssetImage("login_page/bg-decor-top-left.png"),
-              width: MediaQuery.of(context).size.width * 0.35,
-            ),
-            alignment: Alignment.topLeft,
-          ),
-          Container(
-              child: Image(
-                image: AssetImage("login_page/bg-decor-bot-right.png"),
-                width: MediaQuery.of(context).size.width * 0.35,
-              ),
-              alignment: Alignment.bottomRight,
-            )
         ],
       )
     );
@@ -167,7 +180,7 @@ class Login extends StatelessWidget{
         alignment: WrapAlignment.center,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Text("Don't have an account? "),
+          Text("Don't have an account? ", textAlign: TextAlign.center,),
           TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, "/register");
