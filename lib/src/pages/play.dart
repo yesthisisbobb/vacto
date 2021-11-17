@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../blocs/variables_provider.dart';
 import '../classes/News.dart';
@@ -21,6 +22,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   List<int> newsIds;
   List<News> news;
   bool newsHasAlreadyInitialized = false;
+
+  FToast fToast;
 
   bool isTimerStarted = false;
   double maxTime = 180;
@@ -56,6 +59,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   @override
   void initState() {
     super.initState();
+
+    fToast = FToast();
+    fToast.init(context);
 
     timerColorC = AnimationController(
       vsync: this,
@@ -235,7 +241,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     // tqf (Total Questions Faced)
 
     String gameMode = "";
-    bool wonChallenge = false;
     String changesToRating = score.toString();
     String timeAddition;
     String caAddition = answeredCorrect.toString();
@@ -245,9 +250,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       gameMode = "t";
       timeAddition = timer.tick.toString();
     } else if (vBloc.isGameModeChallenge == true){
-      changesToRating = "0";
       gameMode = "c";
       timeAddition = "0";
+      changesToRating = "0";
     } else{
       gameMode = "s";
       timeAddition = "0";
@@ -259,7 +264,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       body: {
         "id": vBloc.currentUser.id,
         "gamemode": gameMode,
-        "wonchallenge": wonChallenge.toString(),
         "rating": changesToRating,
         "tstg": timeAddition,
         "ca": caAddition,
@@ -345,6 +349,162 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     return false;
   }
 
+  Future<bool> achievementProcess() async {
+    int timeAchievement = 0;
+    int standardGamemodeAchievement = 0;
+    int timedGamemodeAchievement = 0;
+    int challengeAchievement = 0;
+    int tierUpAchievement = 0;
+
+    // Time played check
+    DateTime nowTime = DateTime.now();
+    print(nowTime.toString());
+    print(nowTime.hour.toString());
+
+    if(nowTime.hour + 7 >= 22 && nowTime.hour + 7 <= 24){
+      timeAchievement = 3;
+    }
+    else if((nowTime.hour + 7 >= 25 && nowTime.hour + 7 <= 30) || (nowTime.hour + 7 >= 1 && nowTime.hour + 7 <= 5)){
+      timeAchievement = 2;
+    }
+
+    // Standard gamemode check
+    if(vBloc.isGameModeTimed == false && vBloc.isGameModeChallenge == false){
+      if(vBloc.currentUser.sgp + 1 == 1){
+        standardGamemodeAchievement = 1;
+      }
+      else if (vBloc.currentUser.sgp + 1 == 10) {
+        standardGamemodeAchievement = 11;
+      }
+      else if (vBloc.currentUser.sgp + 1 == 100) {
+        standardGamemodeAchievement = 12;
+      }
+    }
+
+    // Timed gamemode check
+    if(vBloc.isGameModeTimed == true){
+      if (vBloc.currentUser.tstg + timer.tick >= 180){
+        timedGamemodeAchievement = 4;
+      }
+      else if (vBloc.currentUser.tstg + timer.tick >= 900) {
+        timedGamemodeAchievement = 13;
+      }
+      else if (vBloc.currentUser.tstg + timer.tick >= 1800) {
+        timedGamemodeAchievement = 14;
+      }
+    }
+
+    // Challenge check
+    if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == true){
+      if (challengeStatus == "win") {
+        if (vBloc.currentUser.cw + 1 == 1) {
+          challengeAchievement = 15;
+        } else if (vBloc.currentUser.cw + 1 == 10) {
+          challengeAchievement = 16;
+        } else if (vBloc.currentUser.cw + 1 == 100) {
+          challengeAchievement = 17;
+        }
+      }
+    }
+
+    // Tier up check
+    if(vBloc.isGameModeChallenge == false && vBloc.isChallenged == false){
+      if (vBloc.currentUser.rating + score >= 200){
+        tierUpAchievement = 5;
+      }
+      if (vBloc.currentUser.rating + score >= 400) {
+        tierUpAchievement = 6;
+      }
+      if (vBloc.currentUser.rating + score >= 800) {
+        tierUpAchievement = 7;
+      }
+      if (vBloc.currentUser.rating + score >= 1600) {
+        tierUpAchievement = 8;
+      }
+      if (vBloc.currentUser.rating + score >= 3200) {
+        tierUpAchievement = 9;
+      }
+      if (vBloc.currentUser.rating + score >= 6400) {
+        tierUpAchievement = 10;
+      }
+    }
+    else{
+      if(challengeStatus == "win"){
+        int scoreDiff = (answeredCorrect - answeredCorrectOpponent).abs() * 3;
+
+        if (vBloc.currentUser.rating + scoreDiff >= 200) {
+          tierUpAchievement = 5;
+        }
+        if (vBloc.currentUser.rating + scoreDiff >= 400) {
+          tierUpAchievement = 6;
+        }
+        if (vBloc.currentUser.rating + scoreDiff >= 800) {
+          tierUpAchievement = 7;
+        }
+        if (vBloc.currentUser.rating + scoreDiff >= 1600) {
+          tierUpAchievement = 8;
+        }
+        if (vBloc.currentUser.rating + scoreDiff >= 3200) {
+          tierUpAchievement = 9;
+        }
+        if (vBloc.currentUser.rating + scoreDiff >= 6400) {
+          tierUpAchievement = 10;
+        }
+      }
+    }
+
+    if(timeAchievement != 0){
+      var res = await http.post(Uri.parse("http://localhost:3000/api/user/achievement/add"),
+        body: {
+          "uid": vBloc.currentUser.id,
+          "aid": timeAchievement.toString()
+        }
+      );
+      if (res.statusCode == 400) print(res.body.toString());
+      else{
+        showToast(Image.asset("vacto_logo.png",height: 20,));
+      }
+    }
+    if (standardGamemodeAchievement != 0) {
+      var res = await http.post(
+          Uri.parse("http://localhost:3000/api/user/achievement/add"),
+          body: {"uid": vBloc.currentUser.id, "aid": standardGamemodeAchievement.toString()});
+      if (res.statusCode == 400) print(res.body.toString());
+      else {
+        showToast(Image.asset("vacto_logo.png",height: 20,));
+      }
+    }
+    if (timedGamemodeAchievement != 0) {
+      var res = await http.post(
+          Uri.parse("http://localhost:3000/api/user/achievement/add"),
+          body: {"uid": vBloc.currentUser.id, "aid": timedGamemodeAchievement.toString()});
+      if (res.statusCode == 400) print(res.body.toString());
+      else {
+        showToast(Image.asset("vacto_logo.png",height: 20,));
+      }
+    }
+    if (challengeAchievement != 0) {
+      var res = await http.post(
+          Uri.parse("http://localhost:3000/api/user/achievement/add"),
+          body: {"uid": vBloc.currentUser.id, "aid": challengeAchievement.toString()});
+      if (res.statusCode == 400) print(res.body.toString());
+      else {
+        showToast(Image.asset("vacto_logo.png",height: 20,));
+      }
+    }
+    if (tierUpAchievement != 0) {
+      var res = await http.post(
+          Uri.parse("http://localhost:3000/api/user/achievement/add"),
+          body: {"uid": vBloc.currentUser.id, "aid": tierUpAchievement.toString()});
+      if (res.statusCode == 400) print(res.body.toString());
+      else {
+        showToast(Image.asset("vacto_logo.png",height: 20,));
+      }
+    }
+
+    return true;
+  }
+
   gameOverProccess() async {
     // Perhitungan game over screen
     if (isGameOver == true) {
@@ -354,12 +514,50 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == true){
         await updateChallenge();
       }
+
+      await achievementProcess();
+
       if(await updateStats()){
         setState(() {
           canShowGameOverScreen = true;
         });
       }
     }
+  }
+
+  showToast(Image img){
+    Widget toast = Container(
+      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(50.0),
+        color: Colors.green[300],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check,
+            size: 20,
+          ),
+          SizedBox(width: 12.0,),
+          Text("An Achievement Reached!"),
+          SizedBox(width: 12.0,),
+          img,
+        ],
+      ),
+    );
+
+    fToast.showToast(
+      child: toast,
+      positionedToastBuilder: (context, child){
+        return Positioned(
+          child: child,
+          bottom: 100,
+          left: 24,
+        );
+      },
+      toastDuration: Duration(seconds: 2),
+    );
   }
   
   Future<bool> showExitDialog() async {

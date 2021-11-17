@@ -42,18 +42,6 @@ class Feed {
     else if(content == "challenge_l"){
       text += "$username has just lost a challenge $opponent";
     }
-    else if(content == "sg_10"){
-      text += "$username has just played their 10th standard game!";
-    }
-    else if(content == "sg_100"){
-      text += "$username has just played their 100th standard game!";
-    }
-    else if(content == "tg_10"){
-      text += "$username has just spent their 10th minutes in timed gamemode!";
-    }
-    else if(content == "tg_100"){
-      text += "$username has just spent their 100th minutes in timed gamemode!";
-    }
 
     return text;
   }

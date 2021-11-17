@@ -210,14 +210,32 @@ app.get("/api/user/get/:id", async (req, res) => {
     return res.status(200).send(checkUser[0]);
 });
 
+// ------ ADD ACHIEVEMENT USER ------ //
+app.post("/api/user/achievement/add", async (req, res) => {
+    let uid = req.body.uid;
+    let aid = req.body.aid;
+
+    if (!uid || !aid) return res.status(400).send("One of the field is missing");
+
+    aid = parseInt(aid);
+
+    let query = `insert into user_achievement values(0,'${uid}',${aid},NOW())`
+    let insertAchievement = await executeQuery(conn, query);
+    if(insertAchievement["affectedRows"] < 1) return res.status(400).send("Insert achievement failed");
+
+    query = `insert into feed values(0,NOW(),'achievement','${uid}','',${aid})`;
+    let insertFeed = await executeQuery(conn, query);
+    if (insertFeed["affectedRows"] < 1) return res.status(400).send("Insert feed failed");
+
+    return res.status(200).send("Insert successful");
+});
+
 // ------ POST GAME UPDATE USER ------ //
 app.post("/api/user/update/stats", async (req, res) => {
     // user id
     let id = req.body.id;
     // gamemode (s standard / t timed / c challenge)
     let gamemode = req.body.gamemode;
-    // gamemode (s standard / t timed / c challenge)
-    let wonchallenge = req.body.wonchallenge;
     // level -> cuma + 1
     // Tier 1 100+ || Tier 2 200+ || Tier 3 400+ || Tier 4 800+ || Tier 5  1600+ || Tier 6 3200+ || Tier 7 6400+
     let level;
@@ -231,14 +249,12 @@ app.post("/api/user/update/stats", async (req, res) => {
     let tstg = parseInt(req.body.tstg);
     // cgp (Challenge Games Played) -> cuma + 1
     let cgp;
-    // cw (Challenge Won) -> cuma + 1
-    let cw;
     // ca (Correct Answers)
     let ca = parseInt(req.body.ca);
     // tqf (Total Questions Faced)
     let tqf = parseInt(req.body.tqf);
 
-    let query = `select rating, sgp, tgp, tstg, cgp, cw, ca, tqf from user where id='${id}'`;
+    let query = `select rating, sgp, tgp, tstg, cgp, ca, tqf from user where id='${id}'`;
     let getUser = await executeQuery(conn, query);
     if(getUser.length < 1) return res.status(404).send("User not found");
 
@@ -265,12 +281,10 @@ app.post("/api/user/update/stats", async (req, res) => {
     tstg += parseInt(getUser[0]["tstg"]);
     if (gamemode == "c") cgp = parseInt(getUser[0]["cgp"]) + 1;
     else cgp = parseInt(getUser[0]["cgp"]);
-    if (gamemode == "c" && wonchallenge === 'true') cw = parseInt(getUser[0]["cw"]) + 1;
-    else cw = parseInt(getUser[0]["cw"]);
     ca += parseInt(getUser[0]["ca"]);
     tqf += parseInt(getUser[0]["tqf"]);
 
-    query = `update user set level=${level}, rating=${rating}, sgp=${sgp}, tgp=${tgp}, tstg=${tstg}, cgp=${cgp}, cw=${cw}, ca=${ca}, tqf=${tqf} where id='${id}'`;
+    query = `update user set level=${level}, rating=${rating}, sgp=${sgp}, tgp=${tgp}, tstg=${tstg}, cgp=${cgp}, ca=${ca}, tqf=${tqf} where id='${id}'`;
     console.log(query);
     let updateUser = await executeQuery(conn, query);
     if(updateUser["affectedRows"] < 1) return res.status(400).send("Update failed");
