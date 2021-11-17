@@ -7,20 +7,18 @@ class Feed {
   int id;
   DateTime date;
   String content;
-  String user1;
-  String user2;
-  String username; // username user1
+  String user;
+  String opponent;
+  String achievement;
+  String username;
 
-  Feed(id, date, content, user1, user2, username){
+  Feed(id, date, content, user, opponent, achievement, username){
     this.id = id;
-    print("DATE BEFORE FORMATTING !!!!!!!!!!!!!!!!!!!!!!!!!!");
-    print(date);
     this.date = DateTime.parse(date);
-    print("DATE AFTER FORMATTING !!!!!!!!!!!!!!!!!!!!!!!!!!");
-    print(this.date);
     this.content = "$content";
-    this.user1 = "$user1";
-    this.user2 = "$user2";
+    this.user = "$user";
+    this.opponent = "$opponent";
+    this.achievement = "$achievement";
     this.username = "$username";
   }
 
@@ -36,13 +34,25 @@ class Feed {
     String text = "$hour:$minute:$second ";
 
     if(content == "achievement"){
-      text += "$username has just earned achievement 'something'";
+      text += "$username has just earned achievement '$achievement'";
     }
     else if(content == "challenge_w"){
-      text += "$username has just won a challenge!";
+      text += "$username has just won a challenge against $opponent!";
     }
     else if(content == "challenge_l"){
-      text += "$username has just lost a challenge!";
+      text += "$username has just lost a challenge $opponent";
+    }
+    else if(content == "sg_10"){
+      text += "$username has just played their 10th standard game!";
+    }
+    else if(content == "sg_100"){
+      text += "$username has just played their 100th standard game!";
+    }
+    else if(content == "tg_10"){
+      text += "$username has just spent their 10th minutes in timed gamemode!";
+    }
+    else if(content == "tg_100"){
+      text += "$username has just spent their 100th minutes in timed gamemode!";
     }
 
     return text;

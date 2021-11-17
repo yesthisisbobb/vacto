@@ -216,6 +216,7 @@ class _MainMenuState extends State<MainMenu> {
                                   });
                                 }
                               ),
+                              SizedBox(width: 8.0,),
                               OutlinedButton(
                                 child: Text("Local"),
                                 onPressed: (){
@@ -226,6 +227,7 @@ class _MainMenuState extends State<MainMenu> {
                               ),
                             ]
                           ),
+                          SizedBox(height: 12.0,),
                           Expanded(
                             child: feed(),
                           ),
@@ -263,7 +265,7 @@ class _MainMenuState extends State<MainMenu> {
 
                 List<Feed> tempArr = [];
                 for (var item in parsedData) {
-                  Feed temp = Feed(item["id"], item["date"], item["content"], item["user1"], item["user2"], item["username"]);
+                  Feed temp = Feed(item["id"], item["date"], item["content"], item["user"], item["opponent"], item["achievement"], item["username"]);
                   tempArr.add(temp);
                 }
 

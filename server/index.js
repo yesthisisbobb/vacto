@@ -100,9 +100,11 @@ app.get("/api/countries/get/:country", async (req, res) => {
     }
 });
 
+let feedSelects = `select f.*, u.username, a.name as achievement`;
+let feedFroms = `FROM feed f INNER JOIN user u ON f.user = u.id LEFT JOIN achievement a ON f.achievement = a.id`;
 // ------ GET FEEDS GLOBAL ------ //
 app.get("/api/feed/get/global/", async (req, res) => {
-    let query = `select f.*, u.username from feed f, user u where f.user1 = u.id order by f.date DESC LIMIT 30`;
+    let query = `${feedSelects} ${feedFroms} order by f.date DESC LIMIT 30`;
     let getFeed = await executeQuery(conn, query);
     if(getFeed.length < 1) return res.status(400).send("Failed getting feed");
 
@@ -112,7 +114,7 @@ app.get("/api/feed/get/global/", async (req, res) => {
 // ------ GET FEEDS LOCAL ------ //
 app.get("/api/feed/get/local/:nat", async (req, res) => {
     let nat = req.params.nat; // global/local
-    let query = `select f.*, u.username from feed f, user u where f.user1 = u.id and u.nationality = '${nat}' order by f.date DESC LIMIT 30`;
+    let query = `${feedSelects} ${feedFroms} and u.nationality = '${nat}' order by f.date DESC LIMIT 30`;
     let getFeed = await executeQuery(conn, query);
     if (getFeed.length < 1) return res.status(400).send("Failed getting feed");
 
