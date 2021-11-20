@@ -25,7 +25,7 @@ class Login extends StatelessWidget{
       wf = 0.6;
       imgWidthP = 0.5;
     }
-    if (MediaQuery.of(context).size.width <= 500) {
+    if (MediaQuery.of(context).size.width <= 600) {
       wf = 0.9;
       imgWidthP = 0.6;
     }

@@ -61,7 +61,15 @@ class _MainMenuState extends State<MainMenu> {
             body: Container(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height,
-              child: Row(
+              child: MediaQuery.of(context).size.width <= 800 
+              ? SingleChildScrollView(
+                child: Column(
+                  children: [
+                    leftContent(context),
+                  ],
+                ),
+              )
+              : Row(
                 children: [
                   Expanded(flex: 3, child: leftContent(context)),
                   Expanded(flex: 7, child: rightContent(context))
@@ -88,157 +96,195 @@ class _MainMenuState extends State<MainMenu> {
               SizedBox(
                 height: 24.0,
               ),
-              Image(
-                image: AssetImage("vacto_full.png"),
-                height: 42,
-              ),
+              vactoLogoSection(),
               SizedBox(
-                height: 20,
+                height: 20.0,
               ),
-              Card(
-                borderOnForeground: true,
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(70.0),
-                        bottomRight: Radius.circular(70.0))),
-                shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
-                elevation: 5.0,
-                child: Container(
-                  padding: EdgeInsets.all(24.0),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          child: CircleAvatar(
-                            backgroundImage: NetworkImage(
-                                'https://www.woolha.com/media/2020/03/eevee.png',
-                                scale: 0.5),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            radius: 48,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 8.0,
-                        ),
-                        Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          alignment: WrapAlignment.center,
-                          direction: Axis.horizontal,
-                          children: [
-                            Container(
-                              height: 18,
-                              child: Image.asset(
-                                  "country-flags/${vBloc.currentUser.nationality}.png"),
-                            ),
-                            SizedBox(
-                              width: 12.0,
-                            ),
-                            Text(
-                              vBloc.currentUser.username,
-                              style: TextStyle(
-                                  fontSize: 22.0, fontWeight: FontWeight.w500),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(
-                              width: 12.0,
-                            ),
-                            Container(
-                              child: Image(
-                                image: AssetImage(
-                                    "tiers/tier${vBloc.currentUser.level}.png"),
-                                height: 24,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 8.0,
-                        ),
-                        Container(
-                          child: Text("[Showcase Achievement]"),
-                        ),
-                        SizedBox(
-                          height: 10.0,
-                        ),
-                        Container(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 18.0, vertical: 12.0)),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text("Logout"),
-                                SizedBox(
-                                  width: 5.0,
-                                ),
-                                Icon(Icons.logout),
-                              ],
-                            ),
-                            onPressed: () {
-                              vBloc.localS.deleteItem("id");
-                              Navigator.pushNamed(context, "/login");
-                            },
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
+              profileSection(context),
+              SizedBox(
+                height: 12.0,
               ),
-              SizedBox(height: 12.0,),
-              Expanded(
-                child: Card(
-                  borderOnForeground: true,
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(70.0))),
-                  shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
-                  elevation: 5.0,
-                  child: Container(
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              OutlinedButton(
-                                child: Text("Global"),
-                                onPressed: (){
-                                  setState(() {
-                                    feedType = "";
-                                  });
-                                }
-                              ),
-                              SizedBox(width: 8.0,),
-                              OutlinedButton(
-                                child: Text("Local"),
-                                onPressed: (){
-                                  setState(() {
-                                    feedType = vBloc.currentUser.nationality;
-                                  });
-                                }
-                              ),
-                            ]
-                          ),
-                          SizedBox(height: 12.0,),
-                          Expanded(
-                            child: feed(),
-                          ),
-                        ],
-                      )
-                    ),
-                  ),
-                ),
+              MediaQuery.of(context).size.width <= 800
+              ? Container(
+                width: double.infinity,
+                height: 1000,
+                child: rightContent(context),
+              )
+              : Container(),
+              SizedBox(
+                height: 12.0,
               ),
+              MediaQuery.of(context).size.width <= 800
+              ? Container(
+                height: 300,
+                child: feedSection(context),
+              )
+              : Expanded(child: feedSection(context)),
             ],
           )),
+    );
+  }
+
+  Widget vactoLogoSection(){
+    return Image(
+      image: AssetImage("vacto_full.png"),
+      height: 42,
+    );
+  }
+
+  Widget profileSection(BuildContext context){
+    return Card(
+      borderOnForeground: true,
+      margin: MediaQuery.of(context).size.width <= 800 ? EdgeInsets.symmetric(horizontal: 24.0) : EdgeInsets.zero,
+      shape: MediaQuery.of(context).size.width <= 800
+      ? RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(70.0))
+      )
+      : RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topRight: Radius.circular(70.0),
+              bottomRight: Radius.circular(70.0))),
+      shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
+      elevation: 5.0,
+      child: Container(
+        padding: EdgeInsets.all(24.0),
+        child: Center(
+          child: Column(
+            children: [
+              Container(
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(
+                      'https://www.woolha.com/media/2020/03/eevee.png',
+                      scale: 0.5),
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primary,
+                  radius: 48,
+                ),
+              ),
+              SizedBox(
+                height: 8.0,
+              ),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: WrapAlignment.center,
+                direction: Axis.horizontal,
+                children: [
+                  Container(
+                    height: 18,
+                    child: Image.asset(
+                        "country-flags/${vBloc.currentUser.nationality}.png"),
+                  ),
+                  SizedBox(
+                    width: 12.0,
+                  ),
+                  Text(
+                    vBloc.currentUser.username,
+                    style: TextStyle(
+                        fontSize: 22.0, fontWeight: FontWeight.w500),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(
+                    width: 12.0,
+                  ),
+                  Container(
+                    child: Image(
+                      image: AssetImage(
+                          "tiers/tier${vBloc.currentUser.level}.png"),
+                      height: 24,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 8.0,
+              ),
+              Container(
+                child: Text("[Showcase Achievement]"),
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              Container(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 18.0, vertical: 12.0)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Logout"),
+                      SizedBox(
+                        width: 5.0,
+                      ),
+                      Icon(Icons.logout),
+                    ],
+                  ),
+                  onPressed: () {
+                    vBloc.localS.deleteItem("id");
+                    Navigator.pushNamed(context, "/login");
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget feedSection(BuildContext context){
+    return Card(
+      borderOnForeground: true,
+      margin: EdgeInsets.zero,
+      shape: MediaQuery.of(context).size.width <= 800 
+      ? RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(70.0),
+              topRight: Radius.circular(70.0)))
+      : RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topRight: Radius.circular(70.0))),
+      shadowColor: Color.fromRGBO(0, 0, 0, 0.2),
+      elevation: 5.0,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            feedButtons(context),
+            SizedBox(height: 12.0,),
+            Expanded(
+              child: feed(),
+            ),
+          ],
+        )
+      ),
+    );
+  }
+
+  Widget feedButtons(BuildContext context){
+    return Row(
+      mainAxisAlignment: MediaQuery.of(context).size.width <= 800 ? MainAxisAlignment.center : MainAxisAlignment.start,
+      children: [
+        OutlinedButton(
+          child: Text("Global"),
+          onPressed: (){
+            setState(() {
+              feedType = "";
+            });
+          }
+        ),
+        SizedBox(width: 8.0,),
+        OutlinedButton(
+          child: Text("Local"),
+          onPressed: (){
+            setState(() {
+              feedType = vBloc.currentUser.nationality;
+            });
+          }
+        ),
+      ]
     );
   }
 
@@ -249,7 +295,6 @@ class _MainMenuState extends State<MainMenu> {
       stream: vBloc.feedTypeStream,
       builder: (context, snapshot){
         print("Masuk streambuilder feed");
-        print(snapshot);
         if (snapshot.hasData) {
           return FutureBuilder(
             future: Future<List<Feed>>(() async {
@@ -269,7 +314,6 @@ class _MainMenuState extends State<MainMenu> {
                   tempArr.add(temp);
                 }
 
-                print(tempArr);
                 return tempArr;
               }
 
@@ -277,11 +321,9 @@ class _MainMenuState extends State<MainMenu> {
             }),
             builder: (context, snapshot){
               print("Masuk futurebuilder feed");
-              print(snapshot);
               if (snapshot.hasData) {
                 feeds = List.castFrom(snapshot.data);
-                print(feeds);
-                print(feeds.length);
+                print("Feed Total: ${feeds.length}");
                 if(feeds.isNotEmpty){
                   return ListView(
                     reverse: true,
@@ -318,10 +360,13 @@ class _MainMenuState extends State<MainMenu> {
   }
 
   Widget rightContent(BuildContext context) {
+    int caCount = 3;
+    if(MediaQuery.of(context).size.width <= 1070) caCount = 2;
+
     return Container(
       padding: EdgeInsets.all(20.0),
       child: GridView.count(
-        crossAxisCount: 3,
+        crossAxisCount: caCount,
         mainAxisSpacing: 20.0,
         crossAxisSpacing: 20.0,
         children: menus(context),
@@ -609,8 +654,24 @@ class _MainMenuState extends State<MainMenu> {
     );
   }
 
-  Widget menuItem(BuildContext context, String path,
-      String text, Function ontap) {
+  Widget menuItem(BuildContext context, String path, String text, Function ontap) {
+    Widget textOnButton = Text(
+      text,
+      style: TextStyle(
+          fontSize: 32.0,
+          fontWeight: FontWeight.bold,
+          color: Colors.white),
+      textAlign: TextAlign.left,
+    );
+    if (MediaQuery.of(context).size.width <= 600){
+      textOnButton = Text(
+        text,
+        style: TextStyle(
+            fontSize: 28.0, fontWeight: FontWeight.bold, color: Colors.white),
+        textAlign: TextAlign.left,
+      );
+    }
+
     return InkWell(
       hoverColor: Theme.of(context).colorScheme.secondary,
       highlightColor: Theme.of(context).colorScheme.secondaryVariant,
@@ -626,14 +687,7 @@ class _MainMenuState extends State<MainMenu> {
             alignment: Alignment.topLeft,
             child: Stack(
               children: [
-                Text(
-                  text,
-                  style: TextStyle(
-                      fontSize: 32.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                  textAlign: TextAlign.left,
-                ),
+                textOnButton,
                 Align(
                   alignment: Alignment.bottomRight,
                   child: Image(
