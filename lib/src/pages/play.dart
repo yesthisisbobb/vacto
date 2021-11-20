@@ -367,11 +367,24 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   }
 
   Future<bool> achievementProcess() async {
+    List<int> userAchievements = [];
     int timeAchievement = 0;
     int standardGamemodeAchievement = 0;
     int timedGamemodeAchievement = 0;
     int challengeAchievement = 0;
     int tierUpAchievement = 0;
+
+    var res = await http.get(Uri.parse("http://localhost:3000/api/user/achievement/get/${vBloc.currentUser.id}"));
+    if(res.statusCode == 200){
+      var jsonData = res.body.toString();
+      var parsedData = json.decode(jsonData);
+
+      for (var item in parsedData) {
+        userAchievements.add(item["achievement"]);
+      }
+      print("User Achievements");
+      print(userAchievements);
+    }
 
     // Time played check (needs work)
     DateTime nowTime = DateTime.now();
@@ -387,13 +400,13 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
     // Standard gamemode check
     if(vBloc.isGameModeTimed == false && vBloc.isGameModeChallenge == false){
-      if(vBloc.currentUser.sgp + 1 == 1){
+      if(vBloc.currentUser.sgp + 1 >= 1 && vBloc.currentUser.sgp + 1 < 10){
         standardGamemodeAchievement = 1;
       }
-      else if (vBloc.currentUser.sgp + 1 == 10) {
+      else if (vBloc.currentUser.sgp + 1 >= 10 && vBloc.currentUser.sgp + 1 < 100) {
         standardGamemodeAchievement = 11;
       }
-      else if (vBloc.currentUser.sgp + 1 == 100) {
+      else if (vBloc.currentUser.sgp + 1 >= 100) {
         standardGamemodeAchievement = 12;
       }
     }
@@ -403,10 +416,10 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       if (vBloc.currentUser.tstg + timer.tick >= 180){
         timedGamemodeAchievement = 4;
       }
-      else if (vBloc.currentUser.tstg + timer.tick >= 900) {
+      if (vBloc.currentUser.tstg + timer.tick >= 900) {
         timedGamemodeAchievement = 13;
       }
-      else if (vBloc.currentUser.tstg + timer.tick >= 1800) {
+      if (vBloc.currentUser.tstg + timer.tick >= 1800) {
         timedGamemodeAchievement = 14;
       }
     }
@@ -416,9 +429,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       if (challengeStatus == "win") {
         if (vBloc.currentUser.cw + 1 == 1) {
           challengeAchievement = 15;
-        } else if (vBloc.currentUser.cw + 1 == 10) {
+        } if (vBloc.currentUser.cw + 1 == 10) {
           challengeAchievement = 16;
-        } else if (vBloc.currentUser.cw + 1 == 100) {
+        } if (vBloc.currentUser.cw + 1 == 100) {
           challengeAchievement = 17;
         }
       }
@@ -469,6 +482,13 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         }
       }
     }
+
+    // Klo achievement udah ada
+    if (userAchievements.contains(timeAchievement)) timeAchievement = 0;
+    if (userAchievements.contains(standardGamemodeAchievement)) standardGamemodeAchievement = 0;
+    if (userAchievements.contains(timedGamemodeAchievement)) timedGamemodeAchievement = 0;
+    if (userAchievements.contains(challengeAchievement)) challengeAchievement = 0;
+    if (userAchievements.contains(tierUpAchievement)) tierUpAchievement = 0;
 
     if(timeAchievement != 0){
       var res = await http.post(Uri.parse("http://localhost:3000/api/user/achievement/add"),
@@ -710,6 +730,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                   child: Text("Submit"),
                   onPressed: () {
                     reasoning = reasoningC.text;
+                    reasoningC.text = "";
                     Navigator.pop(context, true);
                   },
                 )
@@ -1133,6 +1154,79 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       ],
     );
 
+    int currTier = vBloc.currentUser.level;
+    int nextTier = currTier + 1;
+    if(nextTier > 7) nextTier = 7;
+    double endRating = (vBloc.currentUser.rating + score) * 1.0;
+    double per = 200;
+    if (nextTier == 3) per = 400;
+    if (nextTier == 4) per = 800;
+    if (nextTier == 5) per = 1600;
+    if (nextTier == 6) per = 3200;
+    if (nextTier == 7) per = 6400;
+    double progressEnd = (endRating/per);
+    if(progressEnd > 1) progressEnd = 1;
+
+    Widget levelUp = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 12.0,
+        ),
+        Container(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                "tiers/tier$currTier.png",
+                height: 30,
+              ),
+              SizedBox(
+                width: 12.0,
+              ),
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: progressEnd),
+                duration: Duration(milliseconds: 1500),
+                builder: (context, value, _) {
+                  return Container(
+                    width: 180,
+                    child: LinearProgressIndicator(
+                      minHeight: 8,
+                      backgroundColor: Colors.grey[400],
+                      value: value,
+                    ),
+                  );
+                }),
+              SizedBox(
+                width: 12.0,
+              ),
+              Image.asset(
+                "tiers/tier$nextTier.png",
+                height: 30,
+              )
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 12.0,
+        ),
+        Container(
+          width: 180,
+          child: Align(
+            alignment: Alignment.center,
+            child: Text("$endRating/$per"),
+          ),
+        ),
+        (endRating >= per) ? Container(
+          width: 180,
+          child: Align(
+            alignment: Alignment.center,
+            child: Text("Your are now at tier $nextTier!"),
+          ),
+        ) : SizedBox.shrink(),
+      ],
+    );
+
     Row tryAgainButton = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1149,7 +1243,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     );
 
     if (isGameOver == true) {
-      if(canShowGameOverScreen){
+      if(canShowGameOverScreen == true){
         return Container(
           height: double.infinity,
           width: double.infinity,
@@ -1176,6 +1270,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                           topTextWidget,
                           scoreWidget,
                           bottomTextWidget,
+                          levelUp,
                           SizedBox(
                             height: 30.0,
                           ),
@@ -1662,7 +1757,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             icon: Icon(Icons.close_rounded),
             iconSize: 36,
             highlightColor: Colors.red[50],
-            splashColor: Colors.green[200],
+            splashColor: Colors.red[200],
             color: Colors.red,
             onPressed: () {
               if (isGameOver == false) {

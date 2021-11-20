@@ -218,6 +218,18 @@ app.get("/api/user/get/:id", async (req, res) => {
     return res.status(200).send(checkUser[0]);
 });
 
+// ------ GET ACHIEVEMENT USER ------ //
+app.get("/api/user/achievement/get/:id", async (req, res) => {
+    let id = req.params.id;
+
+    if(!id) return res.status(400).send("Id is missing");
+
+    let query = `select * from user_achievement where user='${id}'`;
+    let getAchievements = await executeQuery(conn, query);
+    
+    return res.status(200).send(getAchievements);
+});
+
 // ------ ADD ACHIEVEMENT USER ------ //
 app.post("/api/user/achievement/add", async (req, res) => {
     let uid = req.body.uid;
@@ -266,20 +278,19 @@ app.post("/api/user/update/stats", async (req, res) => {
     let getUser = await executeQuery(conn, query);
     if(getUser.length < 1) return res.status(404).send("User not found");
 
+    level = 1;
     if (rating + parseInt(getUser[0]["rating"]) > 199) {
         level = 2;
-    } else if (rating + parseInt(getUser[0]["rating"]) > 399){
+    } if (rating + parseInt(getUser[0]["rating"]) > 399){
         level = 3;
-    } else if (rating + parseInt(getUser[0]["rating"]) > 799) {
+    } if (rating + parseInt(getUser[0]["rating"]) > 799) {
         level = 4;
-    } else if (rating + parseInt(getUser[0]["rating"]) > 1599) {
+    } if (rating + parseInt(getUser[0]["rating"]) > 1599) {
         level = 5;
-    } else if (rating + parseInt(getUser[0]["rating"]) > 3199) {
+    } if (rating + parseInt(getUser[0]["rating"]) > 3199) {
         level = 6;
-    } else if (rating + parseInt(getUser[0]["rating"]) > 6399) {
+    } if (rating + parseInt(getUser[0]["rating"]) > 6399) {
         level = 7;
-    } else{
-        level = 1;
     }
     rating += parseInt(getUser[0]["rating"]);
     if(gamemode == "s") sgp = parseInt(getUser[0]["sgp"]) + 1;
