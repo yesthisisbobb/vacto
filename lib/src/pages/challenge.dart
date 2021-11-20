@@ -79,10 +79,10 @@ class _ChallengeState extends State<Challenge> {
                   },
                   onHover: (hovered){
                     if(hovered){
-                      print("a");
+                      //
                     }
                     else{
-                      print("b");
+                      //
                     }
                   },
                 ),

@@ -213,6 +213,10 @@ class _ChallengeRequestState extends State<ChallengeRequest> {
                 SizedBox(
                   height: 40.0,
                 ),
+                backButton(context),
+                SizedBox(
+                  height: 24.0,
+                ),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
@@ -221,6 +225,7 @@ class _ChallengeRequestState extends State<ChallengeRequest> {
                         color: Colors.white,
                         fontSize: 40,
                         fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.right,
                   ),
                 ),
                 SizedBox(
@@ -234,6 +239,7 @@ class _ChallengeRequestState extends State<ChallengeRequest> {
                       color: Colors.white,
                       fontSize: 20,
                     ),
+                    textAlign: TextAlign.right,
                   ),
                 ),
                 SizedBox(
@@ -251,6 +257,20 @@ class _ChallengeRequestState extends State<ChallengeRequest> {
           ),
         )
       )
+    );
+  }
+
+  Widget backButton(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: IconButton(
+        icon: Icon(Icons.arrow_back_rounded),
+        iconSize: 40,
+        color: Colors.white,
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 

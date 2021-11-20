@@ -67,120 +67,176 @@ class _AddNewsState extends State<AddNews> {
   Widget build(BuildContext context) {
     vB = VariablesProvider.of(context);
 
+    return Scaffold(
+      body: baseContainer(context),
+    );
+  }
+
+  Widget baseContainer(BuildContext context){
+    double wf = 0.7;
+    if(MediaQuery.of(context).size.width <= 1000) wf = 0.97;
+
     return Container(
+      height: double.infinity,
+      width: double.infinity,
       color: Theme.of(context).colorScheme.primary,
-      child: Center(
+      child: SingleChildScrollView(
         child: FractionallySizedBox(
-          heightFactor: 0.97,
-          widthFactor: 0.7,
-          child: Container(
-            child: Card(
-              child: Container(
-                padding: EdgeInsets.all(40.0),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+          widthFactor: wf,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 40,
+              ),
+              backButton(context),
+              SizedBox(
+                height: 12,
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Add News",
+                      style: TextStyle(
+                        fontSize: 46.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      )
+                    ),
+                    Text(
+                      "Add your own news article for others to guess!",
+                      style: TextStyle(
+                        fontSize: 20.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 24,
+              ),
+              newsSection(),
+              SizedBox(
+                height: 60,
+              ),
+            ],
+          ),
+        ),
+        
+      ),
+    );
+  }
+
+  Widget backButton(BuildContext context){
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: IconButton(
+        icon: Icon(Icons.arrow_back_rounded),
+        iconSize: 40,
+        color: Colors.white,
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  Widget newsSection(){
+    return Container(
+      child: Card(
+        child: Container(
+          padding: EdgeInsets.all(40.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "News type",
+                  style: bold18,
+                ),
+              ),
+              SizedBox(height: 12.0,),
+              Container(
+                child: Column(
+                  children: [
+                    RadioListTile(
+                      title: Text("Normal"),
+                      value: "nor",
+                      groupValue: subtype,
+                      onChanged: (val){
+                        setState(() {
+                          subtype = val;
+                        });
+                      }
+                    ),
+                    RadioListTile(
+                      title: Text("URL Only"),
+                      value: "url",
+                      groupValue: subtype,
+                      onChanged: (val){
+                        setState(() {
+                          subtype = val;
+                        });
+                      }
+                    ),
+                    RadioListTile(
+                      title: Text("Photo Only"),
+                      value: "pho",
+                      groupValue: subtype,
+                      onChanged: (val){
+                        setState(() {
+                          subtype = val;
+                        });
+                      }
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 30.0,),
+              titleField(),
+              SizedBox(height: 24.0,),
+              (subtype != "url") ? imageField() : Container(),
+              (subtype == "nor") ? descField() : Container(),
+              (subtype != "pho") ? sourceField() : Container(),
+              tagsField(),
+              answerField(),
+              ElevatedButton(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Add News",
-                                style: TextStyle(
-                                    fontSize: 30.0, fontWeight: FontWeight.bold)),
-                            Text(
-                              "Add your own news article for others to guess!",
-                              style: TextStyle(
-                                fontSize: 18.0,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 24.0,),
+                      Text("Upload"),
+                      SizedBox(width: 8.0,),
                       Container(
-                        child: Column(
-                          children: [
-                            RadioListTile(
-                              title: Text("Normal"),
-                              value: "nor",
-                              groupValue: subtype,
-                              onChanged: (val){
-                                setState(() {
-                                  subtype = val;
-                                });
-                              }
-                            ),
-                            RadioListTile(
-                              title: Text("URL Only"),
-                              value: "url",
-                              groupValue: subtype,
-                              onChanged: (val){
-                                setState(() {
-                                  subtype = val;
-                                });
-                              }
-                            ),
-                            RadioListTile(
-                              title: Text("Photo Only"),
-                              value: "pho",
-                              groupValue: subtype,
-                              onChanged: (val){
-                                setState(() {
-                                  subtype = val;
-                                });
-                              }
-                            ),
-                          ],
-                        ),
+                        height: 18,
+                        width: 18,
+                        child: (isUploading == true)
+                          ? CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                          : Icon(Icons.upload,
+                            size: 18,
+                          ),
                       ),
-                      SizedBox(height: 30.0,),
-                      titleField(),
-                      SizedBox(height: 24.0,),
-                      (subtype != "url") ? imageField() : Container(),
-                      (subtype == "nor") ? descField() : Container(),
-                      (subtype != "pho") ? sourceField() : Container(),
-                      tagsField(),
-                      answerField(),
-                      ElevatedButton(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text("Upload"),
-                              SizedBox(width: 8.0,),
-                              Container(
-                                height: 18,
-                                width: 18,
-                                child: (isUploading == true)
-                                  ? CircularProgressIndicator(
-                                      color: Colors.white,
-                                    )
-                                  : Icon(Icons.upload,
-                                    size: 18,
-                                  ),
-                              ),
-                              
-                            ],
-                          )
-                        ),
-                        onPressed: () {
-                          upload();
-                        },
-                      ),
-                      SizedBox(height: 24.0,),
-                      validationMessage(),
-                      SizedBox(height: 42.0,),
+                      
                     ],
-                  ),
+                  )
                 ),
+                onPressed: () {
+                  upload();
+                },
               ),
-            ),
+              SizedBox(height: 24.0,),
+              validationMessage(),
+              SizedBox(height: 42.0,),
+            ],
           ),
         ),
       ),

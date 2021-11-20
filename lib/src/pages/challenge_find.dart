@@ -158,6 +158,10 @@ class _ChallengeFindState extends State<ChallengeFind> {
             SizedBox(
               height: 40,
             ),
+            backButton(context),
+            SizedBox(
+              height: 24,
+            ),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -196,6 +200,20 @@ class _ChallengeFindState extends State<ChallengeFind> {
           ],
         ),
       )),
+    );
+  }
+
+  Widget backButton(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: IconButton(
+        icon: Icon(Icons.arrow_back_rounded),
+        iconSize: 40,
+        color: Colors.white,
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 
