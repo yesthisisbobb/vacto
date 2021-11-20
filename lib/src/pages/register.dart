@@ -61,8 +61,42 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
   @override
   Widget build(BuildContext context) {
     rBloc = RegisterProvider.of(context);
+    double psSize = 0.68;
+    if (MediaQuery.of(context).size.height <= 1000) psSize = 0.5;
+
     return Scaffold(
-      body: registerInputs(context),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        color: Colors.white,
+        child: Stack(
+          children: [
+            Positioned(
+              bottom: -60,
+              right: -20,
+              child: Opacity(
+                opacity: 0.5,
+                child: Image.asset(
+                  "register_page/plus-1.png",
+                  height: MediaQuery.of(context).size.height * psSize,
+                ),
+              ),
+            ),
+            Positioned(
+              top: -60,
+              left: -20,
+              child: Opacity(
+                opacity: 0.5,
+                child: Image.asset(
+                  "register_page/plus-2.png",
+                  height: MediaQuery.of(context).size.height * psSize,
+                ),
+              ),
+            ),
+            registerInputs(context)
+          ],
+        ),
+      ),
     );
   }
 
@@ -75,12 +109,14 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
   }
   
   Widget registerInputs(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height,
-      child: Center(
-          child: FractionallySizedBox(
-        widthFactor: 0.7,
+    print(MediaQuery.of(context).size.width);
+    double wf = 0.7;
+    if (MediaQuery.of(context).size.width <= 1000) wf = 0.8;
+    if (MediaQuery.of(context).size.width <= 770) wf = 0.9;
+    if (MediaQuery.of(context).size.width <= 500) wf = 1;
+    return Center(
+      child: FractionallySizedBox(
+        widthFactor: wf,
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -158,7 +194,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
             ],
           ),
         ),
-      )),
+      )
     );
   }
 
@@ -354,8 +390,179 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
   }
 
   List<Widget> stepTwo(BuildContext context) {
+    double fontsize = 14.0;
+    double flexfactor = 0.5;
+
     Map<String, String> data;
     List<DropdownMenuItem<String>> dropdowns = [];
+
+    Widget natTextW = Text(
+      "Nationality",
+      textAlign: TextAlign.start,
+      style: TextStyle(
+        fontSize: fontsize,
+      ),
+    );
+
+    Widget dobTextW = Text(
+      "Date of Birth",
+      textAlign: TextAlign.start,
+      style: TextStyle(
+        fontSize: fontsize,
+      ),
+    );
+
+    Widget genderTextW = Text(
+      "Gender",
+      textAlign: TextAlign.start,
+      style: TextStyle(
+        fontSize: fontsize,
+      ),
+    );
+
+    Widget dropdown = FutureBuilder(
+      future: Future<Map<String, String>>(() async {
+        var res = await http.get(Uri.parse("http://localhost:3000/api/countries/get/all"));
+        if(res.statusCode == 200){
+          var jsonData = res.body.toString();
+          var parsedJson = json.decode(jsonData);
+          
+          List<String> name = [];
+          List<String> abv = [];
+          for (var item in parsedJson) {
+            name.add(item["name"]);
+            abv.add(item["abv"]);
+          }
+
+          Map<String, String> result = Map.fromIterables(name, abv);
+          return result;
+        }
+        else{
+          return null;
+        }
+      }),
+      builder: (context, snapshot){
+        if(!snapshot.hasData){
+          return LinearProgressIndicator();
+        }
+        else{
+          data = snapshot.data;
+          dropdowns.clear();
+
+          data.forEach((k, v) {
+            dropdowns.add(
+              DropdownMenuItem(
+                value: v,
+                child: Text(k),
+              )
+            );
+          });
+          
+          return DropdownButton<String>(
+            onChanged: (val){
+              setState(() {
+                dropdownValue = val;
+              });
+            },
+            items: dropdowns,
+            value: dropdownValue,
+          );
+        }
+      }
+    );
+
+    Widget dobStreamB = StreamBuilder(
+      stream: rBloc.dobStream,
+      builder: (context, snapshot){
+        return TextField(
+          readOnly: true,
+          decoration: InputDecoration(
+            hintText: "dd-mm-yyyy",
+            errorText: (snapshot.hasError) ? snapshot.error.toString() : null,
+          ),
+          controller: _dateController,
+          onTap: () async {
+            var date = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now());
+            if (date != null) {
+              var initDate = date.toString().substring(0, 10);
+              var splitDate = initDate.split("-");
+              _dateController.text = "${splitDate[2]}-${splitDate[1]}-${splitDate[0]}";
+              rBloc.changeDob("${splitDate[2]}-${splitDate[1]}-${splitDate[0]}");
+            }
+          }
+        );
+      } 
+    );
+
+    Widget genderRadioL = Column(
+      children: [
+        SizedBox(height: 20.0,),
+        RadioListTile<String>(
+          title: Text("Male"),
+          value: "m",
+          groupValue: gender,
+          onChanged: (value) {
+            setState(() {
+              gender = value;
+            });
+          }
+        ),
+        RadioListTile<String>(
+          title: Text("Female"),
+          value: "f",
+          groupValue: gender,
+          onChanged: (value) {
+            setState(() {
+              gender = value;
+            });
+          }
+        ),
+        RadioListTile<String>(
+          title: Text("Prefer not to say"),
+          value: "n",
+          groupValue: gender,
+          onChanged: (value) {
+            setState(() {
+              gender = value;
+            });
+          }
+        ),
+      ],
+    );
+
+    Widget smallDetailField = Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          natTextW,
+          SizedBox(
+            height: 8.0,
+          ),
+          dropdown,
+          SizedBox(
+            height: 28.0,
+          ),
+          dobTextW,
+          SizedBox(
+            height: 8.0,
+          ),
+          dobStreamB,
+          SizedBox(
+            height: 28.0,
+          ),
+          genderTextW,
+          SizedBox(
+            height: 8.0,
+          ),
+          genderRadioL,
+        ],
+      ),
+    );
 
     return [
       Align(
@@ -375,157 +582,39 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
       SizedBox(
         height: 24.0,
       ),
-      Align(
+      (MediaQuery.of(context).size.width <= 600)
+      ? smallDetailField
+      : Align(
         alignment: Alignment.centerLeft,
         child: FractionallySizedBox(
           // widthFactor: 0.8,
           child: Table(
             columnWidths: <int, TableColumnWidth>{
-              0: FlexColumnWidth(0.5),
-              1: FlexColumnWidth(0.14),
+              0: FlexColumnWidth(flexfactor),
+              1: FlexColumnWidth(0.12),
               2: FlexColumnWidth(2.0)
             },
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             children: <TableRow>[
               TableRow(
                 children: [
-                  Text(
-                    "Nationality",
-                    textAlign: TextAlign.start,
-                  ),
+                  natTextW,
                   Container(),
-                  FutureBuilder(
-                    future: Future<Map<String, String>>(() async {
-                      var res = await http.get(Uri.parse("http://localhost:3000/api/countries/get/all"));
-                      if(res.statusCode == 200){
-                        var jsonData = res.body.toString();
-                        var parsedJson = json.decode(jsonData);
-                        
-                        List<String> name = [];
-                        List<String> abv = [];
-                        for (var item in parsedJson) {
-                          name.add(item["name"]);
-                          abv.add(item["abv"]);
-                        }
-
-                        Map<String, String> result = Map.fromIterables(name, abv);
-                        return result;
-                      }
-                      else{
-                        return null;
-                      }
-                      
-                    }),
-                    builder: (context, snapshot){
-                      if(!snapshot.hasData){
-                        return LinearProgressIndicator();
-                      }
-                      else{
-                        data = snapshot.data;
-                        dropdowns.clear();
-
-                        data.forEach((k, v) {
-                          dropdowns.add(
-                            DropdownMenuItem(
-                              value: v,
-                              child: Text(k),
-                            )
-                          );
-                        });
-                        
-                        return DropdownButton<String>(
-                          onChanged: (val){
-                            setState(() {
-                              dropdownValue = val;
-                            });
-                          },
-                          items: dropdowns,
-                          value: dropdownValue,
-                        );
-                      }
-                    }
-                  ),
-                  
+                  dropdown,
                 ],
               ),
               TableRow(
                 children: [
-                  Text(
-                    "Date of Birth",
-                    textAlign: TextAlign.start,
-                  ),
+                  dobTextW,
                   Container(),
-                  StreamBuilder(
-                    stream: rBloc.dobStream,
-                    builder: (context, snapshot){
-                      return TextField(
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          hintText: "dd-mm-yyyy",
-                          errorText: (snapshot.hasError) ? snapshot.error.toString() : null,
-                        ),
-                        controller: _dateController,
-                        onTap: () async {
-                          var date = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime(1900),
-                              lastDate: DateTime.now());
-                          if (date != null) {
-                            var initDate = date.toString().substring(0, 10);
-                            var splitDate = initDate.split("-");
-                            _dateController.text = "${splitDate[2]}-${splitDate[1]}-${splitDate[0]}";
-                            rBloc.changeDob("${splitDate[2]}-${splitDate[1]}-${splitDate[0]}");
-                          }
-                        }
-                      );
-                    } 
-                  ),
+                  dobStreamB,
                 ],
               ),
               TableRow(
                 children: [
-                  Text(
-                    "Gender",
-                    textAlign: TextAlign.start,
-                  ),
+                  genderTextW,
                   Container(),
-                  Column(
-                    children: [
-                      SizedBox(height: 20.0,),
-                      RadioListTile<String>(
-                        title: Text("Male"),
-                        value: "m",
-                        groupValue: gender,
-                        onChanged: (value) {
-                          setState(() {
-                            gender = value;
-                          });
-                        }
-                      ),
-                      RadioListTile<String>(
-                        title: Text("Female"),
-                        value: "f",
-                        groupValue: gender,
-                        onChanged: (value) {
-                          setState(() {
-                            gender = value;
-                          });
-                        }
-                      ),
-                      RadioListTile<String>(
-                        title: Text("Prefer not to say"),
-                        value: "n",
-                        groupValue: gender,
-                        onChanged: (value) {
-                          setState(() {
-                            gender = value;
-                          });
-                        }
-                      ),
-                    ],
-                  ),
-                  
+                  genderRadioL,
                 ],
               ),
             ],
@@ -543,6 +632,52 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
     TextStyle justItalic = TextStyle(
       fontStyle: FontStyle.italic,
     );
+
+    Widget normalW = Column(
+      children: [
+        IconButton(
+          icon: Icon(Icons.person),
+          iconSize: 80,
+          color: colorAnimN.value,
+          onPressed: () {
+            setState(() {
+              role = "n";
+            });
+            normalRoleSelected();
+          },
+        ),
+        Text(
+          "Normal User",
+          style: kindaBigStyle,
+        ),
+        Text("I'm just here to play",
+          style: justItalic,
+        )
+      ],
+    );
+
+    Widget dsW = Column(
+      children: [
+        IconButton(
+          icon: Icon(Icons.assessment),
+          iconSize: 80,
+          color: colorAnimD.value,
+          onPressed: () {
+            setState(() {
+              role = "d";
+            });
+            dataRoleSelected();
+          },
+        ),
+        Text("Data Scientist",
+          style: kindaBigStyle,
+        ),
+        Text("I'm here to do sciency stuff",
+          style: justItalic,
+        ),
+      ],
+    );
+
     return [
       Align(
         alignment: Alignment.centerLeft,
@@ -554,7 +689,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
       Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          "Okay! Now onto the last step, choose your role",
+          "Okay! Now onto the last step, choose your desired role",
           style: TextStyle(fontSize: 24),
         ),
       ),
@@ -564,53 +699,21 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
       Column(
         children: [
           SizedBox(height: 30.0,),
-          Row(
+          (MediaQuery.of(context).size.width <= 600)
+          ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              normalW,
+              SizedBox(height: 24.0,),
+              dsW,
+            ],
+          )
+          : Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.person),
-                    iconSize: 80,
-                    color: colorAnimN.value,
-                    onPressed: () {
-                      setState(() {
-                        role = "n";
-                      });
-                      normalRoleSelected();
-                    },
-                  ),
-                  Text(
-                    "Normal User",
-                    style: kindaBigStyle,
-                  ),
-                  Text("I'm just here to play",
-                    style: justItalic,
-                  )
-                ],
-              ),
-              Column(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.assessment),
-                    iconSize: 80,
-                    color: colorAnimD.value,
-                    onPressed: () {
-                      setState(() {
-                        role = "d";
-                      });
-                      dataRoleSelected();
-                    },
-                  ),
-                  Text("Data Scientist",
-                    style: kindaBigStyle,
-                  ),
-                  Text("I'm here to do sciency stuff",
-                    style: justItalic,
-                  ),
-                ],
-              ),
+              normalW,
+              dsW,
             ],
           ),
           SizedBox( height: 30.0, ),
