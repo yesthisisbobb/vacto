@@ -40,7 +40,10 @@ class Feed {
       text += "$username has just won a challenge against $opponent!";
     }
     else if(content == "challenge_l"){
-      text += "$username has just lost a challenge $opponent";
+      text += "$username has just lost a challenge against $opponent";
+    }
+    else if (content == "challenge_d") {
+      text += "$username has just drew a challenge against $opponent";
     }
 
     return text;

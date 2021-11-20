@@ -325,8 +325,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       });
     }
     else{
-      winner = "none";
-      loser = "none";
+      winner = vBloc.currentUser.id;
+      loser = vBloc.opponentId;
       setState(() {
         challengeStatus = "draw";
       });
@@ -341,7 +341,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         "user2ca": answeredCorrect.toString(),
         "score": scoreDiff.toString(),
         "winner": winner,
-        "loser": loser
+        "loser": loser,
+        "challengestatus": challengeStatus
       }
     );
 
@@ -356,7 +357,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     int challengeAchievement = 0;
     int tierUpAchievement = 0;
 
-    // Time played check
+    // Time played check (needs work)
     DateTime nowTime = DateTime.now();
     print(nowTime.toString());
     print(nowTime.hour.toString());

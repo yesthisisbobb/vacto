@@ -1,12 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:mime/mime.dart';
+import 'package:path/path.dart';
 import 'dart:io';
 import 'dart:html' as html;
 import 'package:http/http.dart' as http;
-
-import 'package:image_picker_web/image_picker_web.dart';
+import 'package:http_parser/http_parser.dart' as http_parser;
+import 'package:rxdart/rxdart.dart';
 
 import '../blocs/variables_provider.dart';
 
@@ -33,7 +37,9 @@ class _AddNewsState extends State<AddNews> {
 
   var fileBytes;
   Uint8List uploadedImage;
-  html.File uploadedFile;
+  PlatformFile uploadedFile;
+  Stream<List<int>> tempStream;
+  BehaviorSubject streamC = BehaviorSubject<List<int>>();
 
   List<int> selectedTags = [];
 
@@ -199,7 +205,9 @@ class _AddNewsState extends State<AddNews> {
         SizedBox(height: 12.0,),
         OutlinedButton(
           child: Text("Choose image"),
-          onPressed: () {},
+          onPressed: () {
+            _startFilePicker();
+          },
         ),
         SizedBox(height: 24.0,),
       ],
@@ -381,20 +389,47 @@ class _AddNewsState extends State<AddNews> {
     }
     else{
       print("Masuk tru");
-      var res = await http
-          .post(Uri.parse("http://localhost:3000/api/news/add"), body: {
-        "author": author,
-        "title": title,
-        "content": description,
-        "source": source,
-        "type": type,
-        "subtype": subtype,
-        "answer": answer,
-        "tags": tags
-      });
+      // body: {
+      //   "author": author,
+      //   "title": title,
+      //   "content": description,
+      //   "source": source,
+      //   "type": type,
+      //   "subtype": subtype,
+      //   "answer": answer,
+      //   "tags": tags
+      // }
+      var req = http.MultipartRequest("POST", Uri.parse("http://localhost:3000/api/news/add"));
+
+      req.fields["author"] = author;
+      req.fields["title"] = title;
+      req.fields["content"] = description;
+      req.fields["source"] = source;
+      req.fields["type"] = type;
+      req.fields["subtype"] = subtype;
+      req.fields["answer"] = answer;
+      req.fields["tags"] = tags;
+      print("3");
+
+      var length = uploadedFile.size;
+      print("4");
+      var mimeType = lookupMimeType(uploadedFile.name ?? "");
+      print("5");
+
+      var pic = new http.MultipartFile(
+          "picture", Stream<List<int>>.value(streamC.stream.value), length,
+          filename: uploadedFile.name,
+          contentType:
+              mimeType == null ? null : http_parser.MediaType.parse(mimeType));
+      print("6");
+
+      req.files.add(pic);
+      print("7");
+
+      var res = await req.send();
 
       if (res.statusCode == 200) {
-        print(res.body.toString());
+        print(await res.stream.transform(utf8.decoder).join());
 
         setState(() {
           errorExists = false;
@@ -436,60 +471,61 @@ class _AddNewsState extends State<AddNews> {
     }
   }
 
-  // _startFilePicker() async{
-    // html.InputElement uploadInput = html.FileUploadInputElement();
-    // uploadInput.click();
+  _startFilePicker() async{
+    FilePickerResult result = await FilePicker.platform.pickFiles(
+      withReadStream: true
+    );
+    if(result != null){
+      // buat upload
+      setState(() {
+        uploadedFile = result.files.single;
+      });
 
-    // uploadInput.onChange.listen((event) {
-    //   final files = uploadInput.files;
-    //   if (files.length == 1) {
-    //     File file = files[0];
-    //     setState(() => uploadedFile = file );
-    //     html.FileReader reader = html.FileReader();
+      // buat display gambar
+      tempStream = new http.ByteStream(uploadedFile.readStream);
 
-    //     reader.onLoadEnd.listen((event) {
-    //       setState(() {
-    //         uploadedImage = reader.result;
-    //       });
-    //     });
+      streamC.sink.add(await tempStream.last);
+      var temp = streamC.stream.value;
 
-    //     reader.onError.listen((event) {
-    //       setState(() {
-    //         //error
-    //       });
-    //     });
-        
-    //     reader.readAsArrayBuffer(file);
-    //   }
-    // });
+      setState(() {
+        uploadedImage = temp;
+      });
 
-    // var image = await ImagePickerWeb.getImage(outputType: ImageType.file);
-    // if(image != null){
-    //   setState(() {
-    //     uploadedFile = image;
-    //   });
-    // }
-  // }
+      // testFunction();
+    }
+  }
 
-//   _uploadImage() async {
-//     var req = http.MultipartRequest("POST", Uri.parse("http://localhost:3000/api/news/add"));
-//     print("1");
-//     req.fields["title"] = title;
-//     print("2 - $title");
-    
-//     var pic = await http.MultipartFile.fromPath("picture", uploadedFile.relativePath); // INI GAGAL, ubah ke file
-//     print(pic);
-//     print("3");
-//     req.files.add(pic);
-//     print("4");
+  testFunction() async {
+    var uri = Uri.parse("http://localhost:3000/api/news/uploadimage"); print("1");
 
-//     var res = await req.send();
-//     print("5");
-//     var resData = await res.stream.toBytes();
-//     print("6");
-//     var resString = String.fromCharCodes(resData);
-//     print("7");
+    // var stream = new http.ByteStream(uploadedFile.readStream); print("2");
 
-//     print(resString);
-//   }
+    var length = uploadedFile.size; print("3");
+
+    var mimeType = lookupMimeType(uploadedFile.name ?? ""); print("4");
+
+    var req = new http.MultipartRequest("POST", uri); print("5");
+    var pic = new http.MultipartFile(
+      "picture",
+      Stream<List<int>>.value(streamC.stream.value),
+      length,
+      filename: uploadedFile.name,
+      contentType: mimeType == null ? null : http_parser.MediaType.parse(mimeType)
+    ); print("6");
+
+    req.files.add(pic); print("7");
+
+    final httpClient = http.Client(); print("8");
+    var res = await httpClient.send(req); print("9");
+
+    if(res.statusCode != 200){
+      throw Exception("HTTP ${res.statusCode}");
+    } print("10");
+
+    final body = await res.stream.transform(utf8.decoder).join(); print("11");
+    print(body);
+
+    httpClient.close();
+    streamC.close();
+  }
 }

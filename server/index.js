@@ -2,6 +2,8 @@ const express = require('express');
 const mysql = require('mysql');
 const multer = require('multer');
 const { query, response } = require('express');
+const e = require('express');
+const path = require('path');
 // const request = require('request');
 
 // =========== REQUIREMENTS ===========
@@ -10,6 +12,12 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use("public/uploads/", express.static("public/uploads/")); //prolly wrong
+
+// Buat ngambil gambar
+app.use("/static", express.static('public'));
+app.use('/images', express.static(path.join(__dirname, 'public', 'uploads')));
+
+// CONTOH CARA NGAMBIL GAMBAR: http://127.0.0.1:3001/images/pp1.png
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -51,7 +59,7 @@ const storage = multer.diskStorage({
         const filename = file.originalname.split(".");
         const extension = filename[1];
 
-        //TODO: ngganti penamaan file
+        // ngganti penamaan file
         callback(null, `${Date.now()}.${extension}`);
     }
 });
@@ -69,7 +77,7 @@ function checkFileType(file, callback) {
 
 const uploads = multer({
     storage: storage,
-    fileFilter: (req, res, callback) => checkFileType(file, callback)
+    // fileFilter: (req, res, callback) => checkFileType(file, callback)
 });
 
 // =========== MAIN CODE AREA ===========
@@ -316,13 +324,34 @@ app.get("/api/users/get/sorted/:num", async (req, res) => {
     return res.status(200).send(getUsers);
 });
 
+// TETSING MUST DELET LATER
+app.post("/api/news/uploadimage", uploads.single('picture'), async (req, res) => {
+    let picture = req.file;
+
+    console.log(req);
+    console.log(picture);
+
+    return res.status(200).send(picture);
+
+    // { Yang dikembalikan picture
+    // fieldname: 'picture',
+    // originalname: '47dd4551ce492ebdeae23c0faaeca164.jpg',
+    // encoding: '7bit',
+    // mimetype: 'image/jpeg',
+    // destination: 'public/uploads/',
+    // filename: '1637388493211.jpg',
+    // path: 'public\\uploads\\1637388493211.jpg',
+    // size: 0
+    // }
+});
+
 // ------ ADD NEWS ------ //
-app.post("/api/news/add", async (req, res) => {
+app.post("/api/news/add", uploads.single('picture'), async (req, res) => {
     // TODO: Gambar & status news udah di verify atau belom
     let id = 0; // AUTO INCREMENT
     let author = (req.body.author) ? req.body.author : "none";
     let title = req.body.title;
-    let picture = (req.body.picture) ? req.body.picture : ""; // pic can be null
+    let picture = (req.file) ? req.file.filename : ""; // pic can be null
     let content = req.body.content;
     let source = req.body.source;
     let type = (req.body.type) ? req.body.type : "or";
@@ -490,6 +519,7 @@ app.post("/api/challenge/update", async (req, res) => {
     let score = req.body.score;
     let winner = req.body.winner;
     let loser = req.body.loser;
+    let challengestatus = req.body.challengestatus;
 
     if (!id || !user2ca || !score || !winner || !loser) return res.status(400).send("One of the field is empty");
 
@@ -501,7 +531,7 @@ app.post("/api/challenge/update", async (req, res) => {
     let updateChallenge = await executeQuery(conn, query);
     if (updateChallenge["affectedRows"] < 1) return res.status(400).send("Challenge update failed");
 
-    if(winner != "none" && loser != "none"){
+    if(challengestatus != "draw"){
         let rating, cw;
         query = `select rating, cw from user where id='${winner}'`;
         let getWinner = await executeQuery(conn, query);
@@ -521,6 +551,35 @@ app.post("/api/challenge/update", async (req, res) => {
         query = `update user set rating=${rating} where id='${loser}'`;
         let updateLoser = await executeQuery(conn, query);
         if (updateLoser["affectedRows"] < 1) return res.status(400).send("Loser update failed");
+    }
+
+    // ngambil username lawan
+    if(challengestatus === "win"){
+        let query = `select username from user where id='${loser}'`;
+        let getOpponent = await executeQuery(conn, query);
+        if(getOpponent.length < 1) return res.status(400).send("Opponent not found");
+
+        query = `insert into feed values(0,NOW(),'challenge_w','${winner}','${getOpponent[0]["username"]}',0)`;
+        let insertFeed = await executeQuery(conn, query);
+        if(insertFeed["affectedRows"] < 1) return res.status(400).send("Feed insert failed");
+    }
+    else if(challengestatus === "lose"){
+        let query = `select username from user where id='${winner}'`;
+        let getOpponent = await executeQuery(conn, query);
+        if (getOpponent.length < 1) return res.status(400).send("Opponent not found");
+
+        query = `insert into feed values(0,NOW(),'challenge_l','${loser}','${getOpponent[0]["username"]}',0)`;
+        let insertFeed = await executeQuery(conn, query);
+        if (insertFeed["affectedRows"] < 1) return res.status(400).send("Feed insert failed");
+    }
+    else{
+        let query = `select username from user where id='${loser}'`;
+        let getOpponent = await executeQuery(conn, query);
+        if (getOpponent.length < 1) return res.status(400).send("Opponent not found");
+
+        query = `insert into feed values(0,NOW(),'challenge_d','${winner}','${getOpponent[0]["username"]}',0)`;
+        let insertFeed = await executeQuery(conn, query);
+        if (insertFeed["affectedRows"] < 1) return res.status(400).send("Feed insert failed");
     }
 
     return res.status(200).send("Challenge update successful");
