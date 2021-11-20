@@ -591,13 +591,14 @@ app.post("/api/answer/upload", async (req, res) => {
     let news = req.body.news;
     let answer = req.body.answer;
     let score = req.body.score;
+    let reasoning = req.body.reasoning; // bisa kosong
 
     if(!user || !news || !answer || !score) return res.status(400).send("One of the field is empty!");
 
     news = parseInt(req.body.news);
     score = parseInt(req.body.score);
     
-    let query = `insert into user_answer values(0, '${user}', ${news}, CURRENT_TIMESTAMP(), '${answer}', ${score})`;
+    let query = `insert into user_answer values(0, '${user}', ${news}, CURRENT_TIMESTAMP(), '${answer}', ${score}, '${reasoning}')`;
     let insertAnswer = await executeQuery(conn, query);
     if(insertAnswer["affectedRows"] < 1) return res.status(400).send("Insert failed");
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -39,6 +40,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   int recentScorePoint = 0;
   int answeredCorrect = 0;
   int answeredCorrectOpponent = 0;
+  TextEditingController reasoningC;
+  String reasoning = "";
   String challengeStatus = "";
   bool isDraggedToLeft = false;
   bool isDraggedToRight = false;
@@ -62,6 +65,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
     fToast = FToast();
     fToast.init(context);
+
+    reasoningC = TextEditingController();
 
     timerColorC = AnimationController(
       vsync: this,
@@ -93,6 +98,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     swipeRightCardAnimation.addStatusListener((status) async {
       if (status == AnimationStatus.completed) {
         print("OK Kanan");
+        if (news[currentRound - 1].type == "uc") await showReasoningScreen();
         await uploadAnswer();
         nextRound();
         await gameOverProccess();
@@ -107,6 +113,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     swipeLeftCardAnimation.addStatusListener((status) async {
       if (status == AnimationStatus.completed) {
         print("OK Kiri");
+        if (news[currentRound - 1].type == "uc") await showReasoningScreen();
         await uploadAnswer();
         nextRound();
         await gameOverProccess();
@@ -146,6 +153,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         score += recentScorePoint;
         answeredCorrect++;
       });
+
+      scoreToast(true, recentScorePoint);
     }
     else if(dir == vBloc.CARD_SWIPE_RIGHT && news[currentRound - 1].answer == "legit"){
       print("bener legit");
@@ -161,6 +170,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         score += recentScorePoint;
         answeredCorrect++;
       });
+
+      scoreToast(true, recentScorePoint);
     }
     else{
       print("salah");
@@ -175,6 +186,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       setState(() {
         (news[currentRound - 1].type == "uc") ? score += recentScorePoint : score -= recentScorePoint;
       });
+
+      (news[currentRound - 1].type == "uc") ? scoreToast(true, recentScorePoint) : scoreToast(false, recentScorePoint);
     }
     print("score: $score");
   }
@@ -183,6 +196,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     String recentAnswer = "";
     if (vBloc.swipeDirection == vBloc.CARD_SWIPE_LEFT) recentAnswer = "hoax";
     else if (vBloc.swipeDirection == vBloc.CARD_SWIPE_RIGHT) recentAnswer = "legit";
+
+    if(news[currentRound - 1].type != "uc") reasoning = "";
     print("noprob");
 
     print(vBloc.localS.getItem("id"));
@@ -195,7 +210,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         "user": vBloc.localS.getItem("id"),
         "news": news[currentRound - 1].id.toString(),
         "answer": recentAnswer,
-        "score": recentScorePoint.toString()
+        "score": recentScorePoint.toString(),
+        "reasoning": reasoning
       }
     );
     print("noprob2");
@@ -362,10 +378,10 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     print(nowTime.toString());
     print(nowTime.hour.toString());
 
-    if(nowTime.hour + 7 >= 22 && nowTime.hour + 7 <= 24){
+    if(nowTime.hour>= 22 && nowTime.hour<= 24){
       timeAchievement = 3;
     }
-    else if((nowTime.hour + 7 >= 25 && nowTime.hour + 7 <= 30) || (nowTime.hour + 7 >= 1 && nowTime.hour + 7 <= 5)){
+    else if((nowTime.hour >= 25 && nowTime.hour <= 30) || (nowTime.hour >= 1 && nowTime.hour<= 5)){
       timeAchievement = 2;
     }
 
@@ -463,7 +479,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       );
       if (res.statusCode == 400) print(res.body.toString());
       else{
-        showToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("vacto_logo.png",height: 20,));
       }
     }
     if (standardGamemodeAchievement != 0) {
@@ -472,7 +488,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           body: {"uid": vBloc.currentUser.id, "aid": standardGamemodeAchievement.toString()});
       if (res.statusCode == 400) print(res.body.toString());
       else {
-        showToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("vacto_logo.png",height: 20,));
       }
     }
     if (timedGamemodeAchievement != 0) {
@@ -481,7 +497,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           body: {"uid": vBloc.currentUser.id, "aid": timedGamemodeAchievement.toString()});
       if (res.statusCode == 400) print(res.body.toString());
       else {
-        showToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("vacto_logo.png",height: 20,));
       }
     }
     if (challengeAchievement != 0) {
@@ -490,7 +506,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           body: {"uid": vBloc.currentUser.id, "aid": challengeAchievement.toString()});
       if (res.statusCode == 400) print(res.body.toString());
       else {
-        showToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("vacto_logo.png",height: 20,));
       }
     }
     if (tierUpAchievement != 0) {
@@ -499,7 +515,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           body: {"uid": vBloc.currentUser.id, "aid": tierUpAchievement.toString()});
       if (res.statusCode == 400) print(res.body.toString());
       else {
-        showToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("vacto_logo.png",height: 20,));
       }
     }
 
@@ -526,7 +542,41 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     }
   }
 
-  showToast(Image img){
+  scoreToast(bool isCorrect , int score){
+    String plusminus = isCorrect == true ? "+" : "-";
+    Widget toast = Container(
+      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(50.0),
+        color: isCorrect == true ? Colors.green[300] : Colors.red[400],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isCorrect ? Icons.check : Icons.close,
+            color: isCorrect == true ? Colors.green[900] : Colors.red[900],
+          ),
+          SizedBox(width: 12.0,),
+          Text("$plusminus$score")
+        ],
+      ),
+    );
+
+    fToast.showToast(
+      child: toast,
+      toastDuration: Duration(milliseconds: 1500),
+      positionedToastBuilder: (context, child){
+        return Positioned(
+          top: 80,
+          left: 24,
+          child: child
+        );
+      }
+    );
+  }
+
+  achievementToast(Image img){
     Widget toast = Container(
       padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24.0),
       decoration: BoxDecoration(
@@ -550,6 +600,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
     fToast.showToast(
       child: toast,
+      toastDuration: Duration(seconds: 2),
       positionedToastBuilder: (context, child){
         return Positioned(
           child: child,
@@ -557,7 +608,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           left: 24,
         );
       },
-      toastDuration: Duration(seconds: 2),
     );
   }
   
@@ -615,6 +665,57 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
               },
             )
           ],
+        );
+      }
+    );
+  }
+
+  Future<bool> showReasoningScreen() async {
+    return showDialog(
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          content: Container(
+            padding: EdgeInsets.all(25.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.contact_support_rounded,
+                  size: 50,
+                ),
+                SizedBox(
+                  height: 12.0,
+                ),
+                Text("Why did you choose your answer?"),
+                SizedBox(
+                  height: 12.0,
+                ),
+                Container(
+                  width: 300,
+                  child: TextField(
+                    controller: reasoningC,
+                    maxLines: null,
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: "Your reasoning",
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 12.0,
+                ),
+                ElevatedButton(
+                  child: Text("Submit"),
+                  onPressed: () {
+                    reasoning = reasoningC.text;
+                    Navigator.pop(context, true);
+                  },
+                )
+              ],
+            ),
+          ),
         );
       }
     );
@@ -773,31 +874,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                   if (news.isNotEmpty) {
                     newsHasAlreadyInitialized = true;
 
-                    // Initialize reference
-                    // if (news[currentRound - 1].references.length == 1 &&
-                    //     news[currentRound - 1].references[0] == "") {
-                    //   print("No reference available");
-                    // } else {
-                    //   if (vBloc.complexity == "easy") {
-                    //     if (news[currentRound - 1].references[0] != ""){
-                    //       setState(() {
-                    //         reference1 = news[currentRound - 1].references[0];
-                    //       });
-                    //     }
-                    //   } else if (vBloc.complexity == "normal") {
-                    //     if (news[currentRound - 1].references[0] != ""){
-                    //       setState(() {
-                    //         reference1 = news[currentRound - 1].references[0];
-                    //       });
-                    //     }
-                    //     if (news[currentRound - 1].references[1] != ""){
-                    //       setState(() {
-                    //         reference2 = news[currentRound - 1].references[1];
-                    //       });
-                    //     }
-                    //   }
-                    // }
-
                     // TIMER INIT
                     if(isTimerStarted == false && vBloc.isGameModeTimed){
                       timer = Timer.periodic(Duration(seconds: 1), (timer) async {
@@ -855,11 +931,12 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             bottomContent(),
           ],
         ),
+        drawerButton(context),
+        // reasoningScreen(),
         gameOverScreen(),
         // gameOverDebug(),
         // uploadDebug(),
         // newsInfoDebug(),
-        (vBloc.complexity != "hard") ? drawerButton(context) : Container(),
       ],
     );
   }
@@ -906,18 +983,26 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   }
 
   Widget drawerButton(BuildContext context){
-    return Positioned(
-      right: 10,
-      top: 70,
-      child: IconButton(
-        icon: Icon(Icons.article_rounded),
-        iconSize: 40.0,
-        color: Colors.white,
-        onPressed: (){
-          Scaffold.of(context).openEndDrawer();
-        },
-      )
-    );
+    if (news[currentRound-1].type == "uc"){
+      return Container();
+    }
+    else if(vBloc.complexity != "hard"){
+      return Positioned(
+        right: 10,
+        top: 70,
+        child: IconButton(
+          icon: Icon(Icons.article_rounded),
+          iconSize: 40.0,
+          color: Colors.white,
+          onPressed: (){
+            Scaffold.of(context).openEndDrawer();
+          },
+        )
+      ); 
+    }
+    else{
+      return Container();
+    }
   }
 
   Widget gameOverScreen(){
@@ -1384,7 +1469,9 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       children: [
         Container(
           height: 400,
-          child: Image.asset(
+          child: (news[currentRound - 1].picture != "") 
+          ? Image.network("http://localhost:3000/images/${news[currentRound - 1].picture}")
+          : Image.asset(
             "placeholders/wide-pic.png",
             fit: BoxFit.fitWidth,
           ),
@@ -1413,50 +1500,82 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+      clipBehavior: Clip.hardEdge,
       elevation: 8,
-      child: Container(
-        padding: EdgeInsets.all(25.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  news[currentRound - 1].title,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+      child: Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.only(top: (news[currentRound - 1].type != "uc") ? 25.0 : 34.0, right: 25.0, bottom: 25.0, left: 25.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      news[currentRound - 1].title,
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 5.0,
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                        "${news[currentRound - 1].date.day}/${news[currentRound - 1].date.month}/${news[currentRound - 1].date.year}"),
+                  ),
+                  SizedBox(
+                    height: 18.0,
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Wrap(
+                      alignment: WrapAlignment.start,
+                      direction: Axis.horizontal,
+                      children: chips(),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 18.0,
+                  ),
+                  (news[currentRound - 1].subtype != "url") ? picWidget : Container(),
+                  (news[currentRound - 1].subtype == "nor") ? descWidget : Container(),
+                  (news[currentRound - 1].subtype != "pho") ? Text(news[currentRound - 1].source) : Container(),
+                  SizedBox(
+                    height: 36.0,
+                  ),
+                ],
               ),
-              SizedBox(
-                height: 5.0,
-              ),
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                    "${news[currentRound - 1].date.day}/${news[currentRound - 1].date.month}/${news[currentRound - 1].date.year}"),
-              ),
-              SizedBox(
-                height: 18.0,
-              ),
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Wrap(
-                  alignment: WrapAlignment.start,
-                  direction: Axis.horizontal,
-                  children: chips(),
-                ),
-              ),
-              SizedBox(
-                height: 18.0,
-              ),
-              (news[currentRound - 1].subtype != "url") ? picWidget : Container(),
-              (news[currentRound - 1].subtype == "nor") ? descWidget : Container(),
-              (news[currentRound - 1].subtype != "pho") ? Text(news[currentRound - 1].source) : Container(),
-              SizedBox(
-                height: 36.0,
-              ),
-            ],
+            ),
           ),
-        ),
+          (news[currentRound - 1].type == "uc") ? Positioned(
+            top: 0,
+            right: 0,
+            child: Tooltip(
+              padding: EdgeInsets.all(12.0),
+              message: "Bonus' answer counts as correct no matter which answer you pick",
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: 16.0,
+                  horizontal: 24.0
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.amber[800],
+                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30.0))
+                ),
+                child: Text(
+                  "Bonus Round",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          )
+          : Container(),
+        ],
       ),
     );
   }
@@ -1546,7 +1665,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             splashColor: Colors.green[200],
             color: Colors.red,
             onPressed: () {
-              // TODO: Change this to just check isGameOver
               if (isGameOver == false) {
                 validateAnswer(vBloc.CARD_SWIPE_LEFT);
                 vBloc.addCardDirection(vBloc.CARD_SWIPE_LEFT);

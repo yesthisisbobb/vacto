@@ -57,6 +57,13 @@ class _AddNewsState extends State<AddNews> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+
+    streamC.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     vB = VariablesProvider.of(context);
 
