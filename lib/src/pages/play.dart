@@ -1710,7 +1710,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       );
     }
     else{
-      return Image.network("http://localhost:3000/images/${news[currentRound - 1].picture}");
+      return Image.network("http://localhost:3000/images/news/${news[currentRound - 1].picture}");
     }
   }
 
