@@ -54,7 +54,7 @@ function getConnection() {
 
 const newsstorage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, "public/uploads/news_img"); //prolly wrong
+        callback(null, "public/uploads/news_img");
     },
     filename: (req, file, callback) => {
         const filename = file.originalname.split(".");
@@ -66,7 +66,7 @@ const newsstorage = multer.diskStorage({
 });
 const ppstorage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, "public/uploads/pp_img"); //prolly wrong
+        callback(null, "public/uploads/pp_img");
     },
     filename: (req, file, callback) => {
         const filename = file.originalname.split(".");
@@ -389,7 +389,7 @@ app.post("/api/news/add", newsuploads.single('picture'), async (req, res) => {
 
     if(!author || !title || !content || !source || !type || !subtype || !answer) return res.status(400).send("One of the field is empty");
 
-    let query = `insert into news values(${id},'${author}','${title}', NOW(),'${picture}','${content}','${source}','${type}', '${subtype}','${answer}')`;
+    let query = `insert into news values(${id},'${author}','${title}', NOW(),'${picture}','${content}','${source}','${type}', '${subtype}','${answer}','n')`;
     let insertNews = await executeQuery(conn, query);
     console.log(query);
     if (insertNews["affectedRows"] < 1) return res.status(400).send("News insert failed");
