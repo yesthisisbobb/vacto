@@ -66,7 +66,7 @@ const newsstorage = multer.diskStorage({
 });
 const ppstorage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, "public/uploads/news_img"); //prolly wrong
+        callback(null, "public/uploads/pp_img"); //prolly wrong
     },
     filename: (req, file, callback) => {
         const filename = file.originalname.split(".");
