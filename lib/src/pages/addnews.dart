@@ -536,7 +536,8 @@ class _AddNewsState extends State<AddNews> {
 
   _startFilePicker() async{
     FilePickerResult result = await FilePicker.platform.pickFiles(
-      withReadStream: true
+      type: FileType.image,
+      withReadStream: true,
     );
     if(result != null){
       // buat upload

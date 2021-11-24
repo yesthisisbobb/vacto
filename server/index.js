@@ -15,9 +15,10 @@ app.use("public/uploads/", express.static("public/uploads/")); //prolly wrong
 
 // Buat ngambil gambar
 app.use("/static", express.static('public'));
-app.use('/images', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/images/news', express.static(path.join(__dirname, 'public', 'uploads', 'news_img')));
+app.use('/images/profile', express.static(path.join(__dirname, 'public', 'uploads', 'pp_img')));
 
-// CONTOH CARA NGAMBIL GAMBAR: http://127.0.0.1:3001/images/pp1.png
+// CONTOH CARA NGAMBIL GAMBAR: http://127.0.0.1:3001/images/news/pp1.png
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -51,13 +52,25 @@ function getConnection() {
     });
 }
 
-const storage = multer.diskStorage({
+const newsstorage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, "public/uploads/"); //prolly wrong
+        callback(null, "public/uploads/news_img"); //prolly wrong
     },
     filename: (req, file, callback) => {
         const filename = file.originalname.split(".");
-        const extension = filename[1];
+        const extension = filename[filename.length - 1];
+
+        // ngganti penamaan file
+        callback(null, `${Date.now()}.${extension}`);
+    }
+});
+const ppstorage = multer.diskStorage({
+    destination: (req, file, callback) => {
+        callback(null, "public/uploads/news_img"); //prolly wrong
+    },
+    filename: (req, file, callback) => {
+        const filename = file.originalname.split(".");
+        const extension = filename[filename.length - 1];
 
         // ngganti penamaan file
         callback(null, `${Date.now()}.${extension}`);
@@ -75,8 +88,12 @@ function checkFileType(file, callback) {
     }
 }
 
-const uploads = multer({
-    storage: storage,
+const newsuploads = multer({
+    storage: newsstorage,
+    // fileFilter: (req, res, callback) => checkFileType(file, callback)
+});
+const ppuploads = multer({
+    storage: ppstorage,
     // fileFilter: (req, res, callback) => checkFileType(file, callback)
 });
 
@@ -336,7 +353,7 @@ app.get("/api/users/get/sorted/:num", async (req, res) => {
 });
 
 // TETSING MUST DELET LATER
-app.post("/api/news/uploadimage", uploads.single('picture'), async (req, res) => {
+app.post("/api/news/uploadimage", newsuploads.single('picture'), async (req, res) => {
     let picture = req.file;
 
     console.log(req);
@@ -357,7 +374,7 @@ app.post("/api/news/uploadimage", uploads.single('picture'), async (req, res) =>
 });
 
 // ------ ADD NEWS ------ //
-app.post("/api/news/add", uploads.single('picture'), async (req, res) => {
+app.post("/api/news/add", newsuploads.single('picture'), async (req, res) => {
     // TODO: Gambar & status news udah di verify atau belom
     let id = 0; // AUTO INCREMENT
     let author = (req.body.author) ? req.body.author : "none";

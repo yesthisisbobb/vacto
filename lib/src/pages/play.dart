@@ -20,6 +20,9 @@ class Play extends StatefulWidget {
 
 class _PlayState extends State<Play> with TickerProviderStateMixin{
   VariablesBloc vBloc;
+  bool isRatingAndTierFilled = false;
+  int currentRating = 0;
+  int currentTier = 0;
   List<int> newsIds;
   List<News> news;
   bool newsHasAlreadyInitialized = false;
@@ -439,6 +442,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
     // Tier up check
     if(vBloc.isGameModeChallenge == false && vBloc.isChallenged == false){
+      print("Tier up check: ${vBloc.currentUser.rating + score}");
       if (vBloc.currentUser.rating + score >= 200){
         tierUpAchievement = 5;
       }
@@ -752,6 +756,13 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   @override
   Widget build(BuildContext context) {
     vBloc = VariablesProvider.of(context);
+
+    // Biar ga keisi lagi setiap build
+    if(!isRatingAndTierFilled){
+      currentRating = vBloc.currentUser.rating;
+      currentTier = vBloc.currentUser.level;
+      isRatingAndTierFilled = true;
+    }
 
     return Scaffold(
       body: Container(
@@ -1154,10 +1165,12 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       ],
     );
 
-    int currTier = vBloc.currentUser.level;
-    int nextTier = currTier + 1;
+    int nextTier = currentTier + 1;
     if(nextTier > 7) nextTier = 7;
-    double endRating = (vBloc.currentUser.rating + score) * 1.0;
+    print("Current rating: $currentRating");
+    print("Score: $score");
+    double endRating = (currentRating + score) * 1.0;
+    print("endRating: $endRating");
     double per = 200;
     if (nextTier == 3) per = 400;
     if (nextTier == 4) per = 800;
@@ -1178,7 +1191,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                "tiers/tier$currTier.png",
+                "tiers/tier$currentTier.png",
                 height: 30,
               ),
               SizedBox(
@@ -1221,7 +1234,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           width: 180,
           child: Align(
             alignment: Alignment.center,
-            child: Text("Your are now at tier $nextTier!"),
+            child: Text("You advance to the next tier: Tier $nextTier!"),
           ),
         ) : SizedBox.shrink(),
       ],
@@ -1565,7 +1578,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         Container(
           height: 400,
           child: (news[currentRound - 1].picture != "") 
-          ? Image.network("http://localhost:3000/images/${news[currentRound - 1].picture}")
+          ? newsImageSelector()
           : Image.asset(
             "placeholders/wide-pic.png",
             fit: BoxFit.fitWidth,
@@ -1673,6 +1686,32 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
         ],
       ),
     );
+  }
+
+  Widget newsImageSelector(){
+    if(news[currentRound - 1].picture.startsWith("https")){
+      // TODO: Loading builder ga bekerja
+      return Image.network(news[currentRound - 1].picture,
+        loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+          else{
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes
+                    : null,
+              ),
+            );
+          }
+        }
+      );
+    }
+    else{
+      return Image.network("http://localhost:3000/images/${news[currentRound - 1].picture}");
+    }
   }
 
   List<Widget> chips() {
