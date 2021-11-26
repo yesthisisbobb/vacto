@@ -27,6 +27,8 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
   Animation<Color> colorAnimD;
   AnimationController colorContD;
 
+  double cardHeaderFontSize = 40.0, cardDetailFontSize = 24.0;
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +65,10 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
     rBloc = RegisterProvider.of(context);
     double psSize = 0.68;
     if (MediaQuery.of(context).size.height <= 1000) psSize = 0.5;
+    if (MediaQuery.of(context).size.height <= 700){
+      cardHeaderFontSize = 30;
+      cardDetailFontSize = 20;
+    }
 
     return Scaffold(
       body: Container(
@@ -217,14 +223,14 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
         alignment: Alignment.centerLeft,
         child: Text(
           "Hello and Welcome!",
-          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: cardHeaderFontSize, fontWeight: FontWeight.bold),
         ),
       ),
       Align(
         alignment: Alignment.centerLeft,
         child: Text(
           "What should we call you?",
-          style: TextStyle(fontSize: 24),
+          style: TextStyle(fontSize: cardDetailFontSize),
         ),
       ),
       SizedBox(
@@ -256,12 +262,12 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
             if(snapshot.hasData){
               var temp = snapshot.data.toString();
               return Text( "Hello, $temp!",
-                style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: cardHeaderFontSize, fontWeight: FontWeight.bold),
               );
             }
             else{
               return Text( "Hello, user!",
-                style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: cardHeaderFontSize, fontWeight: FontWeight.bold),
               );
             }
           }
@@ -271,7 +277,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
         alignment: Alignment.centerLeft,
         child: Text(
           "First things first, let's set up your credentials",
-          style: TextStyle(fontSize: 24),
+          style: TextStyle(fontSize: cardDetailFontSize),
         ),
       ),
       SizedBox(
@@ -569,14 +575,14 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
         alignment: Alignment.centerLeft,
         child: Text(
           "Alright!",
-          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: cardHeaderFontSize, fontWeight: FontWeight.bold),
         ),
       ),
       Align(
         alignment: Alignment.centerLeft,
         child: Text(
           "Next, let's fill out details about yourself",
-          style: TextStyle(fontSize: 24),
+          style: TextStyle(fontSize: cardDetailFontSize),
         ),
       ),
       SizedBox(
@@ -683,14 +689,14 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
         alignment: Alignment.centerLeft,
         child: Text(
           "Last Step!",
-          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: cardHeaderFontSize, fontWeight: FontWeight.bold),
         ),
       ),
       Align(
         alignment: Alignment.centerLeft,
         child: Text(
           "Okay! Now onto the last step, choose your desired role",
-          style: TextStyle(fontSize: 24),
+          style: TextStyle(fontSize: cardDetailFontSize),
         ),
       ),
       SizedBox(

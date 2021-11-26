@@ -172,7 +172,18 @@ class _ChallengeRequestState extends State<ChallengeRequest> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Image.asset(
+                    "empty_pics/no-challenge.png",
+                    height: 240,
+                  ),
                   Text("Looks like nobody has challenged you yet :)"),
+                  SizedBox(height: 12.0,),
+                  ElevatedButton(
+                    child: Text("Go back"),
+                    onPressed: (){
+                      Navigator.pop(context);
+                    }, 
+                  ),
                 ],
               ),
             ),

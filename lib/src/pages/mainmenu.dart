@@ -4,6 +4,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:vacto/src/blocs/login_bloc.dart';
+import 'package:vacto/src/blocs/login_provider.dart';
 import 'package:vacto/src/classes/Feed.dart';
 import 'package:vacto/src/classes/User.dart';
 import 'package:vacto/src/pages/loadingscreen.dart';
@@ -18,8 +20,8 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
-  // TODO: make live feed of people, prolly on left side of screen
   VariablesBloc vBloc;
+  LoginBloc lBloc;
   List<Feed> feeds;
 
   String feedType = "";
@@ -27,6 +29,7 @@ class _MainMenuState extends State<MainMenu> {
   @override
   Widget build(BuildContext context) {
     vBloc = VariablesProvider.of(context);
+    lBloc = LoginProvider.of(context);
     feeds = [];
     context = this.context;
 
@@ -220,6 +223,9 @@ class _MainMenuState extends State<MainMenu> {
                     ],
                   ),
                   onPressed: () {
+                    lBloc.errMsgFound(null);
+
+                    vBloc.currentUser = null;
                     vBloc.localS.deleteItem("id");
                     Navigator.pushNamed(context, "/login");
                   },
@@ -335,19 +341,48 @@ class _MainMenuState extends State<MainMenu> {
                   );
                 }
                 else{
-                  return CircularProgressIndicator();
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ColorFiltered(
+                          colorFilter: ColorFilter.mode(Colors.grey[200], BlendMode.src),
+                          child: Image.asset(
+                            "empty_pics/no-feed.png",
+                            height: 120,
+                          ),
+                        ),
+                        SizedBox(height: 12.0,),
+                        Text(
+                          "No activities for now :(",
+                          style: TextStyle(
+                              fontSize: 16.0, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  );
                 }
               }
               else{
-                return CircularProgressIndicator();
+                return feedLoading();
               }
             }
           );
         }
         else{
-          return CircularProgressIndicator();
+          return feedLoading();
         }
       }
+    );
+  }
+
+  Widget feedLoading(){
+    return Center(
+      child: Container(
+        height: 50,
+        width: 50,
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 

@@ -237,7 +237,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           canDoNextRound = true;
         }
         if (currentRound == maxRound + 1) {
-          currentRound = maxRound - 1;
+          currentRound = 10;
           canDoNextRound = false;
           isGameOver = true;
         }
@@ -247,6 +247,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       }
     });
 
+    print("============== NEXT ROUND ==============");
     print("currentRound: $currentRound");
     return canDoNextRound;
   }
@@ -277,7 +278,10 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       timeAddition = "0";
     }
 
-    print("$gameMode");
+    print("============== UPDATE STATS ==============");
+    print("ca: $caAddition");
+    print("tqf: $questionAddition");
+    print("gamemode: $gameMode");
 
     var res = await http.post(Uri.parse("http://localhost:3000/api/user/update/stats"),
       body: {
