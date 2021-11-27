@@ -8,6 +8,7 @@ class Challenge{
   String user1;
   String challenger;
   String user2;
+  String challenged; //only filled on user profile
   String user1Completed;
   String user2Completed;
   int user1Ca;

@@ -246,7 +246,8 @@ class _ProfileState extends State<Profile> {
                     color: Theme.of(context).colorScheme.primary,
                     iconSize: 25,
                     onPressed: () {
-                      //
+                      vBloc.chosenProfileDataSource = vBloc.DATA_SOURCE_CHALLENGE;
+                      Navigator.pushNamed(context, "/profile/detail");
                     },
                   ),
                 ),
@@ -301,7 +302,8 @@ class _ProfileState extends State<Profile> {
                     color: Theme.of(context).colorScheme.primary,
                     iconSize: 25,
                     onPressed: () {
-                      //
+                      vBloc.chosenProfileDataSource = vBloc.DATA_SOURCE_ANSWERS;
+                      Navigator.pushNamed(context, "/profile/detail");
                     },
                   ),
                 ),
@@ -326,7 +328,8 @@ class _ProfileState extends State<Profile> {
                     color: Theme.of(context).colorScheme.primary,
                     iconSize: 25,
                     onPressed: () {
-                      //
+                      vBloc.chosenProfileDataSource = vBloc.DATA_SOURCE_NEWS;
+                      Navigator.pushNamed(context, "/profile/detail");
                     },
                   ),
                 ),

@@ -43,6 +43,7 @@ class _AddNewsState extends State<AddNews> {
 
   List<int> selectedTags = [];
 
+  bool filePicked = false;
   bool isUploading = false;
   bool uploadSuccesful = false;
   bool errorExists = false;
@@ -472,27 +473,35 @@ class _AddNewsState extends State<AddNews> {
       req.fields["subtype"] = subtype;
       req.fields["answer"] = answer;
       req.fields["tags"] = tags;
-      print("3");
 
-      var length = uploadedFile.size;
-      print("4");
-      var mimeType = lookupMimeType(uploadedFile.name ?? "");
-      print("5");
+      if(filePicked == true){
+        var length = uploadedFile.size;
+        print("4");
+        var mimeType = lookupMimeType(uploadedFile.name ?? "");
+        print("5");
 
-      var pic = new http.MultipartFile(
-          "picture", Stream<List<int>>.value(streamC.stream.value), length,
-          filename: uploadedFile.name,
-          contentType:
-              mimeType == null ? null : http_parser.MediaType.parse(mimeType));
-      print("6");
+        var pic = new http.MultipartFile(
+            "picture", Stream<List<int>>.value(streamC.stream.value), length,
+            filename: uploadedFile.name,
+            contentType: mimeType == null
+                ? null
+                : http_parser.MediaType.parse(mimeType));
+        print("6");
 
-      req.files.add(pic);
-      print("7");
+        req.files.add(pic);
+        print("7");
+      }
 
       var res = await req.send();
 
       if (res.statusCode == 200) {
         print(await res.stream.transform(utf8.decoder).join());
+
+        var updateNa = await http.post(Uri.parse("http://localhost:3000/api/user/update/stats/na"),
+          body: {
+            "uid" : vB.currentUser.id
+          }
+        );
 
         setState(() {
           errorExists = false;
@@ -535,6 +544,8 @@ class _AddNewsState extends State<AddNews> {
   }
 
   _startFilePicker() async{
+    filePicked = true;
+    
     FilePickerResult result = await FilePicker.platform.pickFiles(
       type: FileType.image,
       withReadStream: true,

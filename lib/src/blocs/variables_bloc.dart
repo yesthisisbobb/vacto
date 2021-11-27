@@ -7,6 +7,15 @@ class VariablesBloc{
   LocalStorage localS = new LocalStorage("user");
   User currentUser;
 
+  final String DATA_SOURCE_ANSWERS = "answer";
+  final String DATA_SOURCE_CHALLENGE = "challenge";
+  final String DATA_SOURCE_NEWS = "news";
+  String chosenProfileDataSource = "challenge";
+
+  int userNewsViewedId = 0;
+  String userNewsViewedTitle = "";
+  String userNewsViewedAnswer = "";
+
   final CARD_SWIPE_RIGHT = "right";
   final CARD_SWIPE_LEFT = "left";
   

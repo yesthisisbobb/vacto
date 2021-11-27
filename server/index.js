@@ -328,6 +328,27 @@ app.post("/api/user/update/stats", async (req, res) => {
     return res.status(200).send("Update successful");
 });
 
+// ------ POST GAME UPDATE USER ------ //
+app.post("/api/user/update/stats/na", async (req, res) => {
+    let uid = req.body.uid;
+    let na = 0;
+
+    if(!uid) return res.status(400).send("No id given");
+    
+    let query = `select na from user where id='${uid}'`;
+    let getNa = await executeQuery(conn, query);
+    if (getNa.length < 1) return res.status(400).send("NA not found");
+
+    na = parseInt(getNa[0]["na"]);
+    na++;
+
+    query = `update user set na=${na} where id='${uid}'`;
+    let updateNa = await executeQuery(conn,query);
+    if (updateNa["affectedRows"] < 1) return res.status(400).send("NA update error");
+
+    return res.status(200).send("NA update successful");
+});
+
 // ------ GET USERS ------ //
 // Not to be confused with get 'user', which only fetches a singular data
 app.get("/api/users/get/:num", async (req, res) => {
@@ -462,6 +483,19 @@ app.get("/api/news/get/:id", async (req, res) => {
     return res.status(200).send(result);
 });
 
+// ------ GET ALL USER CREATED NEWS ------ //
+app.get("/api/news/get/all/by/:uid", async (req,res) => {
+    let uid = req.params.uid;
+
+    if(!uid) return res.status(400).send("No id given");
+
+    let query = `select id from news where author = '${uid}'`;
+    let getNews = await executeQuery(conn, query);
+    if(getNews.length < 1) return res.status(400).send("Get news failed");
+
+    return res.status(200).send(getNews);
+});
+
 // ------ GENERATE NEWS ------ //
 app.get("/api/news/generate/:num", async (req, res) => {
     // TODO: masukno soal bonus & ngefilter news yang 'or' soale 'uc' itu soal bonus
@@ -521,6 +555,21 @@ app.get("/api/challenge/get/:id", async (req, res) => {
     if(getChallenge.length < 1) return res.status(400).send("Challenge fetch failed");
 
     return res.status(200).send(getChallenge[0]);
+});
+
+// ------ GET CHALLENGES BY A USER ------ //
+app.get("/api/challenge/get/by/:userid", async (req, res) => {
+    let userid = req.params.userid;
+
+    if (!userid) return res.status(400).send("One of the field is empty");
+
+    // TODO: dont think challenger is needed here
+    let query = `select c.*, u.username as challenger from challenge c, user u where user1='${userid}' and c.user1 = u.id`;
+    console.log(query);
+    let getChallenges = await executeQuery(conn, query);
+    if (getChallenges.length < 1) return res.status(400).send("Challenges fetch failed");
+
+    return res.status(200).send(getChallenges);
 });
 
 // ------ GET CHALLENGES FOR A USER ------ //
@@ -633,21 +682,49 @@ app.post("/api/answer/upload", async (req, res) => {
     return res.status(200).send("Insert successful");
 });
 
+// GET FORMATTED ANSWER
 app.get("/api/answer/get/formatted/:id", async (req, res) => {
     let id = req.params.id;
 
     if(!id) return res.status(400).send("Param is empty");
 
     // PASTIKAN SAMA MBEK SG BAWAH
-    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.id=${id} and ua.user = u.id and ua.news = n.id`;
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.id=${id} and ua.user = u.id and ua.news = n.id`;
     let getAnswer = await executeQuery(conn, query);
     if (getAnswer.length < 1) return res.status(500).send("Answer retrieval failed");
 
     return res.status(200).send(getAnswer[0]);
 });
 
-app.get("/api/answer/get/all", async (req, res) => {
-    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.user = u.id and ua.news = n.id`;
+// GET ALL ANSWERS
+app.get("/api/answer/get/formatted/all", async (req, res) => {
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.user = u.id and ua.news = n.id`;
+    let getAllAnswers = await executeQuery(conn, query);
+    if (getAllAnswers.length < 1) return res.status(500).send("Answers retrieval failed");
+
+    return res.status(200).send(getAllAnswers);
+});
+
+// GET ALL ANSWERS FOR A USER
+app.get("/api/answer/get/formatted/all/:uid", async (req, res) => {
+    let uid = req.params.uid;
+
+    if(!uid) return res.status(400).send("No id given");
+
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.user = '${uid}' and ua.user = u.id and ua.news = n.id`;
+    let getAllAnswers = await executeQuery(conn, query);
+    if (getAllAnswers.length < 1) return res.status(500).send("Answers retrieval failed");
+
+    return res.status(200).send(getAllAnswers);
+});
+
+// GET ALL ANSWERS FOR A NEWS
+app.get("/api/answer/get/formatted/all/news/:nid", async (req, res) => {
+    let nid = req.params.nid;
+
+    if (!nid) return res.status(400).send("No id given");
+
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.username as "Username", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.news = '${nid}' and ua.user = u.id and ua.news = n.id`;
     let getAllAnswers = await executeQuery(conn, query);
     if (getAllAnswers.length < 1) return res.status(500).send("Answers retrieval failed");
 

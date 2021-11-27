@@ -1598,7 +1598,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       children: [
         Container(
           child: Text(
-            news[currentRound - 1].content,
+            "${news[currentRound - 1].content}...",
             style: TextStyle(
               fontSize: 16,
             ),
