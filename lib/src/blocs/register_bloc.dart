@@ -58,7 +58,7 @@ class RegisterBloc with Validation{
   submit(BuildContext context) async{
     String username = (_usernameController.hasValue) ? _usernameController.value : "";
     // print("here?");
-    String name = (_nameController.hasValue) ? _nameController.value : ""; // TODO: correcting the names so that it's properly capitalized
+    String name = (_nameController.hasValue) ? _nameController.value : "";
     // print("here?2");
     String email = (_emailController.hasValue) ? _emailController.value : "";
     // print("here?3");
@@ -84,7 +84,6 @@ class RegisterBloc with Validation{
       // print(extrasData);
 
       List<String> extrasSplit = extrasData.split("|");
-      // TODO: Error message stream and check if one field is empty
       nationality = extrasSplit[0];
       gender = extrasSplit[1];
       role = extrasSplit[2];
@@ -96,10 +95,10 @@ class RegisterBloc with Validation{
         var res = await http.post(
           Uri.parse("http://localhost:3000/api/user/register"),
           body: {
-            "username": username,
-            "password": pass,
-            "email": email,
-            "name": name,
+            "username": username.trim(),
+            "password": pass.trim(),
+            "email": email.trim(),
+            "name": name.trim(),
             "nationality": nationality,
             "dob": dob,
             "gender": gender,
@@ -109,7 +108,7 @@ class RegisterBloc with Validation{
 
         print("Status: ${res.statusCode} | Body: ${res.body.toString()}");
         if (res.statusCode == 400) {
-          print("wrong");
+          addError(res.body.toString());
         } else if (res.statusCode == 200) {
           Navigator.pushNamed(context, "/register/success");
         }

@@ -33,8 +33,8 @@ class LoginBloc with Validation{
     
     var res = await http.post(Uri.parse("http://localhost:3000/api/user/login"),
       body: {
-        "email": email,
-        "password": password
+        "email": email.trim(),
+        "password": password.trim()
       },
     );
 

@@ -334,6 +334,7 @@ class _RegisterState extends State<Register> with TickerProviderStateMixin{
                               ? snapshot.error.toString()
                               : null,
                         ),
+                        keyboardType: TextInputType.name,
                         onChanged: rBloc.changeEmail,
                       );
                     }
