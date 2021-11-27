@@ -25,11 +25,11 @@ class _AddNewsState extends State<AddNews> {
   VariablesBloc vB;
   TextStyle bold18 = TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold);
 
-  String title;
+  String title = "";
   // TextEditingController titleC;
-  String description;
+  String description = "";
   // TextEditingController descriptionC;
-  String source;
+  String source = "";
   // TextEditingController sourceC;
 
   String subtype = "nor";
@@ -426,6 +426,8 @@ class _AddNewsState extends State<AddNews> {
       isUploading = true;
     });
 
+    bool canUpload = true;
+
     String author = vB.localS.getItem("id");
     print(author);
     print(title);
@@ -445,13 +447,35 @@ class _AddNewsState extends State<AddNews> {
     }
     print(tags);
 
-    if(author == null || title == null || description == null || description == null || source == null || subtype == null || answer == null){
-      setState(() {
-        errorExists = true;
-        uploadSuccesful = false;
-      });
+    if(subtype == "nor"){
+      if(author == null || title == null || description == null || source == null || subtype == null || answer == null){
+        setState(() {
+          errorExists = true;
+          uploadSuccesful = false;
+          canUpload = false;
+        });
+      }
     }
-    else{
+    else if(subtype == "url"){
+      if(author == null || title == null || source == null || subtype == null || answer == null){
+        setState(() {
+          errorExists = true;
+          uploadSuccesful = false;
+          canUpload = false;
+        });
+      }
+    }
+    else if(subtype == "pho"){
+      if(author == null || title == null || subtype == null || answer == null){
+        setState(() {
+          errorExists = true;
+          uploadSuccesful = false;
+          canUpload = false;
+        });
+      }
+    }
+
+    if (canUpload == true) {
       print("Masuk tru");
       // body: {
       //   "author": author,
@@ -495,6 +519,7 @@ class _AddNewsState extends State<AddNews> {
       var res = await req.send();
 
       if (res.statusCode == 200) {
+        print("Masuk 200");
         print(await res.stream.transform(utf8.decoder).join());
 
         var updateNa = await http.post(Uri.parse("http://localhost:3000/api/user/update/stats/na"),
@@ -507,6 +532,9 @@ class _AddNewsState extends State<AddNews> {
           errorExists = false;
           uploadSuccesful = true;
         });
+      }
+      else{
+        print("Ga masuk");
       }
     }
 

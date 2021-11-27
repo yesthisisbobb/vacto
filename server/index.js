@@ -408,9 +408,22 @@ app.post("/api/news/add", newsuploads.single('picture'), async (req, res) => {
     let answer = req.body.answer;
     let tags = req.body.tags; // FORMAT: 1,2,3,4,5,6 (cuma dipisah koma)
 
-    if(!author || !title || !content || !source || !type || !subtype || !answer) return res.status(400).send("One of the field is empty");
+    if(subtype === "nor"){
+        if (!author || !title || !content || !source || !type || !subtype || !answer) return res.status(400).send("One of the field is empty");
+    }
+    else if (subtype === "url") {
+        if (!author || !title || !source || !type || !subtype || !answer) return res.status(400).send("One of the field is empty");
+    }
+    else if (subtype === "pho") {
+        if (!author || !title || !type || !subtype || !answer) return res.status(400).send("One of the field is empty");
+    }
 
-    let query = `insert into news values(${id},'${author}','${title}', NOW(),'${picture}','${content}','${source}','${type}', '${subtype}','${answer}','n')`;
+    let query = `select id from news order by 1 desc limit 1`;
+    let lastId = await executeQuery(conn, query);
+    if(lastId.length < 1) return res.status(400).send("Last id not found");
+    id = parseInt(lastId[0]["id"]) + 1;
+
+    query = `insert into news values(${id},'${author}','${title}', NOW(),'${picture}','${content}','${source}','${type}', '${subtype}','${answer}','n')`;
     let insertNews = await executeQuery(conn, query);
     console.log(query);
     if (insertNews["affectedRows"] < 1) return res.status(400).send("News insert failed");
@@ -419,14 +432,15 @@ app.post("/api/news/add", newsuploads.single('picture'), async (req, res) => {
         let tagsArr = tags.split(",");
 
         // prolly can cause error
-        let query = `select LAST_INSERT_ID() as last`;
-        let lastInsertQuery = await executeQuery(conn, query);
-        let lastInsertId = lastInsertQuery[0]["last"];
+        // let query = `select LAST_INSERT_ID() as last`;
+        // let lastInsertQuery = await executeQuery(conn, query);
+        // let lastInsertId = lastInsertQuery[0]["last"];
+        // console.log(`last insert id: ${lastInsertId}`);
 
         for (const item in tagsArr) {
             if (Object.hasOwnProperty.call(tagsArr, item)) {
                 const element = tagsArr[item];
-                query = `insert into news_tag values(0,${lastInsertId},${element})`;
+                query = `insert into news_tag values(0,${id},${element})`;
                 await executeQuery(conn, query);
             }
         }
