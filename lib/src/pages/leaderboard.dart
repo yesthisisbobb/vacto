@@ -45,12 +45,13 @@ class LeaderboardDataTableSource extends DataTableSource{
         cells: [
           DataCell(
             Image.asset(
-              "country-flags/${users[index].nationality}.png",
+              "country-flags/${users[index].nationality.toLowerCase()}.png",
               height: 20,
             )
           ),
           DataCell(Text(users[index].username)),
-          DataCell(Text(users[index].level.toString())),
+          // DataCell(Text(users[index].level.toString())),
+          DataCell(Image.asset("tiers/tier${users[index].level.toString()}.png", height: 30,)),
           DataCell(Text(users[index].rating.toString())),
           DataCell(Text(capText)),
         ]

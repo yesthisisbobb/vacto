@@ -711,8 +711,11 @@ app.get("/api/answer/get/formatted/:id", async (req, res) => {
 });
 
 // GET ALL ANSWERS
-app.get("/api/answer/get/formatted/all", async (req, res) => {
+app.get("/api/answer/get/formatted/all/all", async (req, res) => {
+    console.log("WENT HERE --------");
+
     let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.user = u.id and ua.news = n.id`;
+    console.log(query);
     let getAllAnswers = await executeQuery(conn, query);
     if (getAllAnswers.length < 1) return res.status(500).send("Answers retrieval failed");
 

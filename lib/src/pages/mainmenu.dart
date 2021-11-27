@@ -175,7 +175,7 @@ class _MainMenuState extends State<MainMenu> {
                   Container(
                     height: 18,
                     child: Image.asset(
-                        "country-flags/${vBloc.currentUser.nationality}.png"),
+                        "country-flags/${vBloc.currentUser.nationality.toLowerCase()}.png"),
                   ),
                   SizedBox(
                     width: 12.0,

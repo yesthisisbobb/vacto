@@ -17,7 +17,7 @@ class ViewDataTableSource extends DataTableSource{
   }
 
   getDatas() async {
-    var res = await http.get(Uri.parse("http://localhost:3000/api/answer/get/formatted/all"));
+    var res = await http.get(Uri.parse("http://localhost:3000/api/answer/get/formatted/all/all"));
     if(res.statusCode == 200) {
       var jsonData = res.body.toString();
       var parsedJson = json.decode(jsonData);

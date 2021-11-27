@@ -55,7 +55,7 @@ class UserChallenges extends DataTableSource {
           Align(
             alignment: Alignment.center,
             child: Image.asset(
-              "country-flags/${users[index].nationality}.png",
+              "country-flags/${users[index].nationality.toLowerCase()}.png",
               height: 20,
             ),
           ),
@@ -69,7 +69,10 @@ class UserChallenges extends DataTableSource {
         }),
         DataCell(
           Center(
-            child: Text(users[index].level.toString()),
+            child: Image.asset(
+              "tiers/tier${users[index].level.toString()}.png",
+              height: 30,
+            ),
           ),
         ),
         DataCell(

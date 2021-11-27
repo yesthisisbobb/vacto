@@ -113,7 +113,7 @@ class _ProfileState extends State<Profile> {
                       Container(
                         height: 26,
                         child: Image.asset(
-                            "country-flags/${vBloc.currentUser.nationality}.png"),
+                            "country-flags/${vBloc.currentUser.nationality.toLowerCase()}.png"),
                       ),
                       SizedBox(
                         width: 12.0,
