@@ -73,11 +73,17 @@ class ViewDataTableSource extends DataTableSource{
           DataCell(
             Text(dataList[index].dob.toString()),
           ),
+          DataCell(
+            Text(dataList[index].gender.toString()),
+          ),
         ]
       );
     }
     else{
       return DataRow(cells: [
+        DataCell(
+          Text(""),
+        ),
         DataCell(
           Text(""),
         ),
@@ -277,6 +283,12 @@ class _ViewDataState extends State<ViewData> {
             label: Expanded(
           child: Center(
             child: Text("Date of Birth"),
+          ),
+        )),
+        DataColumn(
+            label: Expanded(
+          child: Center(
+            child: Text("Gender"),
           ),
         )),
       ],

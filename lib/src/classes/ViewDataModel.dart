@@ -11,6 +11,7 @@ class ViewDataModel{
   String name;
   String nat;
   DateTime dob;
+  String gender;
 
   ViewDataModel();
 
@@ -30,6 +31,15 @@ class ViewDataModel{
       this.name = parsedJson["Name"];
       this.nat = parsedJson["Nationality"];
       this.dob = DateTime.parse(parsedJson["Date of Birth"]);
+      if(parsedJson["Gender"] == "f"){
+        this.gender = "female";
+      }
+      else if (parsedJson["Gender"] == "m"){
+        this.gender = "male";
+      }
+      else{
+        this.gender = "not-specified";
+      }
 
       return "ViewDataModel creation successful";
     }

@@ -703,7 +703,7 @@ app.get("/api/answer/get/formatted/:id", async (req, res) => {
     if(!id) return res.status(400).send("Param is empty");
 
     // PASTIKAN SAMA MBEK SG BAWAH
-    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.id=${id} and ua.user = u.id and ua.news = n.id`;
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth", u.gender as "Gender" from user u, user_answer ua, news n where ua.id=${id} and ua.user = u.id and ua.news = n.id`;
     let getAnswer = await executeQuery(conn, query);
     if (getAnswer.length < 1) return res.status(500).send("Answer retrieval failed");
 
@@ -714,7 +714,7 @@ app.get("/api/answer/get/formatted/:id", async (req, res) => {
 app.get("/api/answer/get/formatted/all/all", async (req, res) => {
     console.log("WENT HERE --------");
 
-    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.user = u.id and ua.news = n.id`;
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth", u.gender as "Gender" from user u, user_answer ua, news n where ua.user = u.id and ua.news = n.id`;
     console.log(query);
     let getAllAnswers = await executeQuery(conn, query);
     if (getAllAnswers.length < 1) return res.status(500).send("Answers retrieval failed");
@@ -728,7 +728,7 @@ app.get("/api/answer/get/formatted/all/:uid", async (req, res) => {
 
     if(!uid) return res.status(400).send("No id given");
 
-    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth" from user u, user_answer ua, news n where ua.user = '${uid}' and ua.user = u.id and ua.news = n.id`;
+    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth", u.gender as "Gender" from user u, user_answer ua, news n where ua.user = '${uid}' and ua.user = u.id and ua.news = n.id`;
     let getAllAnswers = await executeQuery(conn, query);
     if (getAllAnswers.length < 1) return res.status(500).send("Answers retrieval failed");
 
