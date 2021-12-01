@@ -49,6 +49,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   bool isDraggedToLeft = false;
   bool isDraggedToRight = false;
   bool canDoNextRound = true; 
+  bool isChallengeCancelled = false;
   bool isChallengeWithdrawn = false;
   bool isGameOver = false;
   bool canShowGameOverScreen = false;
@@ -242,8 +243,15 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           isGameOver = true;
         }
       } else {
-        currentRound++;
-        canDoNextRound = true;
+        if(currentRound <= news.length){
+          currentRound++;
+          canDoNextRound = true;
+        }
+        if(currentRound == news.length + 1){
+          currentRound = news.length;
+          canDoNextRound = false;
+          isGameOver = true;
+        }
       }
     });
 
@@ -553,7 +561,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   gameOverProccess() async {
     // Perhitungan game over screen
     if (isGameOver == true) {
-      if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == false){
+      if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == false &&
+          isChallengeCancelled == false){
         await uploadChallenge();
       }
       if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == true){
@@ -1778,6 +1787,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
                 
                 if (vBloc.isGameModeTimed == true) timer.cancel();
 
+                if (vBloc.isGameModeChallenge == true && vBloc.isChallenged == false) isChallengeCancelled = true;
                 if (vBloc.isGameModeChallenge == true && vBloc.isChallenged == true) isChallengeWithdrawn = true;
 
                 await gameOverProccess();

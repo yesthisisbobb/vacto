@@ -1,11 +1,6 @@
-import 'dart:convert';
-import 'dart:js';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../blocs/variables_provider.dart';
-import '../classes/User.dart';
 
 class Challenge extends StatefulWidget {
   Challenge({Key key}) : super(key: key);

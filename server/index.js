@@ -204,6 +204,8 @@ app.post("/api/user/register", async (req, res) => {
     
     let registerUser = await executeQuery(conn, query);
     if (registerUser["affectedRows"] == 1) return res.status(200).send("User succesfully registered");
+
+    return res.status(400).send("User registration failed");
 });
 
 // ------ USER LOGIN ------ //
@@ -243,6 +245,7 @@ app.get("/api/user/achievement/get/:id", async (req, res) => {
 
     let query = `select * from user_achievement where user='${id}'`;
     let getAchievements = await executeQuery(conn, query);
+    if(getAchievements.length < 1) return res.status(400).send("No achievement for this user");
     
     return res.status(200).send(getAchievements);
 });
@@ -328,7 +331,7 @@ app.post("/api/user/update/stats", async (req, res) => {
     return res.status(200).send("Update successful");
 });
 
-// ------ POST GAME UPDATE USER ------ //
+// ------ NEWS ADD UPDATE NA USER ------ //
 app.post("/api/user/update/stats/na", async (req, res) => {
     let uid = req.body.uid;
     let na = 0;
@@ -455,6 +458,8 @@ app.get("/api/news/get/:id", async (req, res) => {
     let tags = "";
     let references = "";
 
+    if (!id) return res.status(400).send("Id is empty");
+
     let query = `select * from news where id=${id}`;
     let getNews = await executeQuery(conn, query);
     if (getNews.length < 1) return res.status(400).send("News retrieval failed");
@@ -514,6 +519,8 @@ app.get("/api/news/get/all/by/:uid", async (req,res) => {
 app.get("/api/news/generate/:num", async (req, res) => {
     // TODO: masukno soal bonus & ngefilter news yang 'or' soale 'uc' itu soal bonus
     let num = req.params.num;
+
+    if(!num) return res.status(400).send("No amount specified");
 
     let query = `select id from news order by rand() limit ${num}`;
     let getGeneratedNews = await executeQuery(conn, query);

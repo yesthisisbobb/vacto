@@ -528,6 +528,8 @@ class _AddNewsState extends State<AddNews> {
           }
         );
 
+        vB.currentUser.fillOutDataFromID(vB.localS.getItem("id"));
+
         setState(() {
           errorExists = false;
           uploadSuccesful = true;
