@@ -55,11 +55,19 @@ class VariablesBloc{
   addUserUpdateError(String msg) => userUpdateErrorController.sink.add(msg);
   Stream<String> get userUpdateErrorStream => userUpdateErrorController.stream;
 
+  final verifyQuestionController = BehaviorSubject<String>();
+  verifyQuestion(nid, validity) {
+    verifyQuestionController.sink.add(nid.toString());
+    changeState(nid, validity);
+  }
+  Stream<String> get verifyQuestionStream => verifyQuestionController.stream;
+
   dispose(){
     feedTypeController.close();
     cardDirectionController.close();
     profileAchievementsController.close();
     userUpdateErrorController.close();
+    verifyQuestionController.close();
   }
 
   Future<bool> changeAchievementPicked(uaid, state) async {

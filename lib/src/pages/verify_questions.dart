@@ -15,6 +15,7 @@ class NewsDataSources extends DataTableSource {
   NewsDataSources(BuildContext context, VariablesBloc vBloc){
     this.context = context;
     this.vBloc = vBloc;
+    news = [];
   }
 
   getDatas() async {
@@ -24,6 +25,7 @@ class NewsDataSources extends DataTableSource {
       var jsonData = res.body.toString();
       var parsedJson = json.decode(jsonData);
 
+      news = [];
       for (var item in parsedJson) {
         News temp = new News();
         await temp.fillOutDataFromID(item["id"]);
@@ -55,12 +57,12 @@ class NewsDataSources extends DataTableSource {
           activeColor: Colors.green[400],
           value: switchValue,
           onChanged: (bool) async {
-            updateSuccessful = await vBloc.changeState(news[index].id, bool);
-            if(updateSuccessful == false) switchValue = false; // butuh setState
+            updateSuccessful = await vBloc.verifyQuestion(news[index].id, bool);
+            // if(updateSuccessful == false) switchValue = false; // butuh setState
             
-            switchValue = bool;
+            // switchValue = bool;
             
-            await getDatas();
+            // await getDatas();
 
             // maybe pop and pushnamed?
           },
@@ -100,6 +102,27 @@ class VerifyQuestions extends StatefulWidget {
 class _VerifyQuestionsState extends State<VerifyQuestions> {
   NewsDataSources nds;
   VariablesBloc vBloc;
+  List<News> news = [];
+
+  getDatas() async {
+    news = [];
+    var res = await http.get(Uri.parse("http://localhost:3000/api/news/get/all/all"));
+    if (res.statusCode == 200) {
+      var jsonData = res.body.toString();
+      var parsedJson = json.decode(jsonData);
+
+      news = [];
+      for (var item in parsedJson) {
+        News temp = new News();
+        await temp.fillOutDataFromID(item["id"]);
+
+        news.add(temp);
+      }
+
+      return true;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,33 +130,125 @@ class _VerifyQuestionsState extends State<VerifyQuestions> {
     nds = NewsDataSources(context, vBloc);
 
     return Scaffold(
-      body: FutureBuilder(
-        future: nds.getDatas(),
-        builder: (context, snapshot){
-          if(snapshot.hasData){
-            if(snapshot.data == true){
-              return baseContainer();
-            }
-            else{
-              return Text("Zonk");
-            }
-          }
-          else{
-            return CircularProgressIndicator();
-          }
-        },
-      ),
+      body: baseContainer(),
+      // StreamBuilder(
+      //   initialData: "a",
+      //   stream: vBloc.verifyQuestionStream,
+      //   builder: (context, snapshot){
+      //     if (snapshot.hasData) {
+      //       print(snapshot);
+      //       return baseContainer();
+            
+      //       FutureBuilder(
+      //         future: nds.getDatas(),
+      //         builder: (context, snapshot){
+      //           if(snapshot.hasData){
+      //             if(snapshot.data == true){
+      //               return baseContainer();
+      //             }
+      //             else{
+      //               return Text("Zonk");
+      //             }
+      //           }
+      //           else{
+      //             return CircularProgressIndicator();
+      //           }
+      //         },
+      //       );
+      //     }
+      //     return CircularProgressIndicator();
+      //   }
+      // ),
     );
   }
 
   Widget baseContainer(){
-    return Container(
-      child: dataTable(),
+    return FutureBuilder(
+      future: getDatas(),
+      builder: (context, snapshot){
+        if(snapshot.hasData){
+          return Container(
+            width: double.infinity,
+            height: double.infinity,
+            child: SingleChildScrollView(
+              child: dataTable(),
+            ),
+          );
+        }
+        return Container(
+          width: double.infinity,
+          height: double.infinity,
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
     );
   }
 
   Widget dataTable(){
-    return PaginatedDataTable(
+    List<DataRow> newsWidget = [];
+    for (var item in news) {
+      String dateText = "${item.date.day}-${item.date.month}-${item.date.year}";
+      bool switchValue = (item.valid == "y") ? true : false;
+
+      DataRow temp = DataRow(
+        cells: [
+          DataCell(Text(item.id.toString())),
+          DataCell(Text(item.author)),
+          DataCell(Text(dateText)),
+          DataCell(Text(item.title)),
+          DataCell(Text(item.source)),
+          DataCell(Text(item.subtype)),
+          DataCell(Text(item.answer)),
+          DataCell(Switch(
+            activeColor: Colors.green[400],
+            value: switchValue,
+            onChanged: (val) async {
+              // bool temp = await vBloc.verifyQuestion(item.id, val);
+              bool temp = await vBloc.changeState(item.id, val);
+              setState(() {});
+            },
+          ))
+        ]
+      );
+      newsWidget.add(temp);
+    }
+
+    print(newsWidget.length);
+
+    return DataTable(
+      columns: [
+        DataColumn(
+          label: Text("id"),
+        ),
+        DataColumn(
+          label: Text("author"),
+        ),
+        DataColumn(
+          label: Text("title"),
+        ),
+        DataColumn(
+          label: Text("date"),
+        ),
+        DataColumn(
+          label: Text("source"),
+        ),
+        DataColumn(
+          label: Text("subtype"),
+        ),
+        DataColumn(
+          label: Text("answer"),
+        ),
+        DataColumn(
+          label: Text("switch"),
+        ),
+      ],
+      rows: newsWidget,
+
+    );
+    
+    PaginatedDataTable(
       source: nds,
       columns: [
         DataColumn(

@@ -624,7 +624,7 @@ app.get("/api/news/generate/:num", async (req, res) => {
 
     if(!num) return res.status(400).send("No amount specified");
 
-    let query = `select id from news order by rand() limit ${num}`;
+    let query = `select id from news where valid='y' order by rand() limit ${num}`;
     let getGeneratedNews = await executeQuery(conn, query);
     if(getGeneratedNews.length < 1) return res.status(400).send("Generate failed");
 
