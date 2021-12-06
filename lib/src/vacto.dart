@@ -13,9 +13,11 @@ import 'pages/challenge_request.dart';
 import 'pages/addnews.dart';
 import 'pages/leaderboard.dart';
 import 'pages/profile.dart';
+import 'pages/profile_edit.dart';
 import 'pages/profile_datas_view.dart';
 import 'pages/profile_news_detail.dart';
 import 'pages/viewdata.dart';
+import 'pages/verify_questions.dart';
 import 'pages/loadingscreen.dart';
 
 import 'pages/paintingground.dart';
@@ -50,6 +52,7 @@ class Vacto extends StatelessWidget {
             ),
             routes: {
               "/": (context) => Login(),
+              // "/": (context) => PaintingGround(),
               "/login": (context) => Login(),
               "/register": (context) => Register(),
               "/register/success": (context) =>RegisterSuccess(),
@@ -61,9 +64,11 @@ class Vacto extends StatelessWidget {
               "/add": (context) => AddNews(),
               "/leaderboard": (context) => Leaderboard(),
               "/profile": (context) => Profile(),
+              "/profile/edit": (context) => ProfileEdit(),
               "/profile/detail": (context) => ProfileDatasView(),
               "/profile/detail/news": (context) => ProfileNewsDetail(),
               "/data/view": (context) => ViewData(),
+              "/questions/verify": (context) => VerifyQuestions(),
               "/loading": (context) => LoadingScreen()
             },
             debugShowMaterialGrid: false,

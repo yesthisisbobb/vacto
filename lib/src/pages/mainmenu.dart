@@ -156,9 +156,11 @@ class _MainMenuState extends State<MainMenu> {
             children: [
               Container(
                 child: CircleAvatar(
-                  backgroundImage: NetworkImage(
-                      'https://www.woolha.com/media/2020/03/eevee.png',
-                      scale: 0.5),
+                  backgroundImage: (vBloc.currentUser.pp == "default.png")
+                      ? AssetImage("placeholders/default.png")
+                      : NetworkImage(
+                          "http://localhost:3000/images/profile/${vBloc.currentUser.pp}",
+                          scale: 0.5),
                   backgroundColor:
                       Theme.of(context).colorScheme.primary,
                   radius: 48,
@@ -202,7 +204,26 @@ class _MainMenuState extends State<MainMenu> {
                 height: 8.0,
               ),
               Container(
-                child: Text("[Showcase Achievement]"),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      "achievements/1.png",
+                      height: 34,
+                    ),
+                    SizedBox(width: 8.0,),
+                    Image.asset(
+                      "achievements/3.png",
+                      height: 34,
+                    ),
+                    SizedBox(width: 8.0,),
+                    Image.asset(
+                      "achievements/5.png",
+                      height: 34,
+                    ),
+                  ],
+                )
               ),
               SizedBox(
                 height: 10.0,
@@ -559,7 +580,7 @@ class _MainMenuState extends State<MainMenu> {
         Navigator.pushNamed(context, "/data/view");
       }) : Container(),
       (vBloc.currentUser.role == "a") ? menuItem(context, "menu_icon/verify.png", "Verify Questions", () {
-        print("playtest7");
+        Navigator.pushNamed(context, "/questions/verify");
       }) : Container(),
     ];
   }

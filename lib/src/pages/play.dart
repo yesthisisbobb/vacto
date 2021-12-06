@@ -287,6 +287,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
     }
 
     print("============== UPDATE STATS ==============");
+    print("Changes to rating: $changesToRating");
     print("ca: $caAddition");
     print("tqf: $questionAddition");
     print("gamemode: $gameMode");
@@ -1589,7 +1590,6 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          height: 400,
           child: (news[currentRound - 1].picture != "") 
           ? newsImageSelector()
           : Image.asset(

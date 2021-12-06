@@ -12,6 +12,7 @@ class News{
   String type;
   String subtype;
   String answer;
+  String valid;
   List<String> tags;
   List<String> references;
 
@@ -45,6 +46,8 @@ class News{
       // print("subtype: $subtype");
       this.answer = parsedData["answer"];
       // print("answer: $answer");
+      this.valid = parsedData["valid"];
+      // print("valid: $valid");
       String temp = parsedData["tags"];
       tags = temp.split(",");
       // print("tags: $tags");

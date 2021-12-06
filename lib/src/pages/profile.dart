@@ -78,9 +78,9 @@ class _ProfileState extends State<Profile> {
                 children: [
                   Container(
                     child: CircleAvatar(
-                      backgroundImage: NetworkImage(
-                          'https://www.woolha.com/media/2020/03/eevee.png',
-                          scale: 0.5),
+                      backgroundImage: (vBloc.currentUser.pp == "default.png")
+                        ? AssetImage("placeholders/default.png") 
+                        : NetworkImage("http://localhost:3000/images/profile/${vBloc.currentUser.pp}", scale: 0.5),
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       radius: 60,
                     ),
@@ -143,7 +143,7 @@ class _ProfileState extends State<Profile> {
                 color: Theme.of(context).colorScheme.primary,
                 iconSize: 30,
                 onPressed: (){
-                  //
+                  Navigator.pushNamed(context, "/profile/edit");
                 },
               ),
             ),

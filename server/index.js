@@ -237,17 +237,78 @@ app.get("/api/user/get/:id", async (req, res) => {
     return res.status(200).send(checkUser[0]);
 });
 
+
+// ------ UPDATE USER ------ //
+app.post("/api/user/update/for/:id", ppuploads.single("picture"), async (req, res) => {
+    let id = req.params.id;
+    let picture = (req.file) ? req.file.filename : "default.png";
+    let username = req.body.unew;
+    let currpassword = req.body.pcurr;
+    let password = req.body.pnew;
+
+    if (!id) return res.status(400).send("Id is empty");
+
+    let fields = ``;
+    if (username) fields += `username='${username}'`;
+    if (username && password) fields += `, `;
+    if (password) fields += `password='${password}'`;
+    let query = `update user set ${fields} where id='${id}' and password='${currpassword}'`;
+    console.log(query);
+
+    if (!username && !password || username == "" && password == ""){
+        console.log("masuk no password dan username");
+        return res.status(200).send("No update");
+    }
+    else{
+        let updateUser = await executeQuery(conn, query);
+        if (updateUser["affectedRows"] < 1) return res.status(400).send("Update failed");
+
+        return res.status(200).send(`Update with id: ${id} successful`);
+    }
+    
+});
+
 // ------ GET ACHIEVEMENT USER ------ //
 app.get("/api/user/achievement/get/:id", async (req, res) => {
     let id = req.params.id;
 
     if(!id) return res.status(400).send("Id is missing");
 
-    let query = `select * from user_achievement where user='${id}'`;
+    let query = `select ua.id as 'uaid', a.id as 'aid', a.name, a.pic, a.description, ua.date, ua.picked from user_achievement ua, achievement a where ua.user='${id}' and ua.achievement = a.id`;
     let getAchievements = await executeQuery(conn, query);
     if(getAchievements.length < 1) return res.status(400).send("No achievement for this user");
     
     return res.status(200).send(getAchievements);
+});
+
+// ------ GET ALL ACHIEVEMENT INCLUDING USER'S ------ //
+app.get("/api/user/achievement/get/all/:id", async (req, res) => {
+    let id = req.params.id;
+
+    if (!id) return res.status(400).send("Id is missing");
+
+    let query = `SELECT a.name, a.description, a.pic, sq.date, sq.picked FROM achievement a LEFT JOIN (SELECT achievement as id, date, picked FROM user_achievement WHERE user='${id}') sq ON a.id = sq.id ORDER BY a.id ASC`;
+    let getAchievements = await executeQuery(conn, query);
+    if (getAchievements.length < 1) return res.status(500).send("Somehow errors");
+
+    return res.status(200).send(getAchievements);
+});
+
+// ------ UPDATE ACHIEVEMENT PICKED ------ //
+app.post("/api/user/achievement/update/", async (req, res) => {
+    let uaid = req.body.uaid;
+    let state = req.body.state;
+
+    if (!uaid) return res.status(400).send("UA id is missing");
+
+    uaid = parseInt(uaid);
+
+    let query = `update user_achievement set picked = NULL where id=${uaid}`;
+    if (state == "y") query = `update user_achievement set picked = '${state}' where id=${uaid}`;
+    let updateAchievements = await executeQuery(conn, query);
+    if (updateAchievements["affectedRows"] < 1) return res.status(400).send("Achievement update failed");
+
+    return res.status(200).send(`User Achievement with id: ${uaid} successfully updated`);
 });
 
 // ------ ADD ACHIEVEMENT USER ------ //
@@ -259,7 +320,7 @@ app.post("/api/user/achievement/add", async (req, res) => {
 
     aid = parseInt(aid);
 
-    let query = `insert into user_achievement values(0,'${uid}',${aid},NOW())`
+    let query = `insert into user_achievement values(0,'${uid}',${aid},NOW(),NULL)`
     let insertAchievement = await executeQuery(conn, query);
     if(insertAchievement["affectedRows"] < 1) return res.status(400).send("Insert achievement failed");
 
@@ -495,11 +556,21 @@ app.get("/api/news/get/:id", async (req, res) => {
         "type": getNews[0]["type"],
         "sub_type": getNews[0]["sub_type"],
         "answer": getNews[0]["answer"],
+        "valid": getNews[0]["valid"],
         "tags": tags,
         "references": references
     };
 
     return res.status(200).send(result);
+});
+
+// ------ GET ALL NEWS ------ //
+app.get("/api/news/get/all/all", async (req, res) => {
+    let query = `select id from news`;
+    let getNews = await executeQuery(conn, query);
+    if (getNews.length < 1) return res.status(400).send("Get news failed");
+
+    return res.status(200).send(getNews);
 });
 
 // ------ GET ALL USER CREATED NEWS ------ //
@@ -513,6 +584,22 @@ app.get("/api/news/get/all/by/:uid", async (req,res) => {
     if(getNews.length < 1) return res.status(400).send("Get news failed");
 
     return res.status(200).send(getNews);
+});
+
+// ------ CHANGE NEWS VALIDITY ------ //
+app.post("/api/news/update/validity/:nid", async (req, res) => {
+    let nid = req.params.nid;
+    let validity = req.body.validity;
+
+    if (!nid || !validity) return res.status(400).send("One of the field is empty");
+
+    console.log(`Masuk valid nid: ${nid}`);
+
+    let query = `update news set valid='${validity}' where id=${nid}`;
+    let updateNews = await executeQuery(conn, query);
+    if (updateNews["affectedRows"] < 1) return res.status(400).send("Update failed");
+
+    return res.status(200).send("Update successful");
 });
 
 // ------ GENERATE NEWS ------ //
