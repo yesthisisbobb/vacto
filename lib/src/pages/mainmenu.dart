@@ -25,6 +25,27 @@ class _MainMenuState extends State<MainMenu> {
   List<Feed> feeds;
 
   String feedType = "";
+  List<String> achievementIds = [];
+
+  Future<bool> getUserAchievement(String uid) async {
+    var res = await http.get(Uri.parse("http://localhost:3000/api/user/achievement/get/picked/$uid"));
+    if(res.statusCode == 200){
+      print("ACHIEVEMENT MASUK 200");
+      var jsonData = res.body.toString();
+      var parsedData = json.decode(jsonData);
+      print(parsedData);
+
+      achievementIds = [];
+      for (var item in parsedData) {
+        achievementIds.add(item["aid"].toString());
+      }
+      print(achievementIds.length);
+
+      return true;
+    }
+    print("ACHIEVEMENT GAMASUK 200");
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,26 +225,36 @@ class _MainMenuState extends State<MainMenu> {
                 height: 8.0,
               ),
               Container(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      "achievements/1.png",
-                      height: 34,
-                    ),
-                    SizedBox(width: 8.0,),
-                    Image.asset(
-                      "achievements/3.png",
-                      height: 34,
-                    ),
-                    SizedBox(width: 8.0,),
-                    Image.asset(
-                      "achievements/5.png",
-                      height: 34,
-                    ),
-                  ],
-                )
+                child: FutureBuilder(
+                  future: getUserAchievement(vBloc.currentUser.id),
+                  builder: (context, snapshot){
+                    if(snapshot.hasData){
+                      if(snapshot.data == true){
+                        List<Widget> imgs = [];
+
+                        for (var i = 0; i < achievementIds.length; i++) {
+                          imgs.add(Image.asset(
+                            "achievements/${achievementIds[i]}.png",
+                            height: 34,
+                          ));
+                          if (i < achievementIds.length - 1) imgs.add(SizedBox(width: 8.0,),);
+                        }
+
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: imgs,
+                        );
+                      }
+                      else{
+                        return Container();
+                      }
+                    }
+                    else{
+                      return CircularProgressIndicator();
+                    }
+                  },
+                ),
               ),
               SizedBox(
                 height: 10.0,
@@ -562,25 +593,25 @@ class _MainMenuState extends State<MainMenu> {
             });
       }),
       menuItem(context, "menu_icon/challenge.png", "Challenge Another Player", () {
-        Navigator.pushNamed(context, "/challenge");
+        Navigator.pushNamed(context, "/challenge").then((value) => setState((){}));
       }),
       menuItem(context, "menu_icon/add.png", "Add News", () {
-        Navigator.pushNamed(context, "/add");
+        Navigator.pushNamed(context, "/add").then((value) => setState(() {}));
       }),
       menuItem(context, "menu_icon/leaderboard.png", "Leaderboard", () {
-        Navigator.pushNamed(context, "/leaderboard");
+        Navigator.pushNamed(context, "/leaderboard").then((value) => setState((){}));
       }),
       menuItem(context, "menu_icon/profile.png", "Profile", () {
-        Navigator.pushNamed(context, "/profile");
+        Navigator.pushNamed(context, "/profile").then((value) => setState((){}));
       }),
       menuItem(context, "menu_icon/settings.png", "Settings", () {
         print("setting");
       }),
       (vBloc.currentUser.role != "n") ? menuItem(context, "menu_icon/view-data.png", "View Data", () {
-        Navigator.pushNamed(context, "/data/view");
+        Navigator.pushNamed(context, "/data/view").then((value) => setState((){}));
       }) : Container(),
       (vBloc.currentUser.role == "a") ? menuItem(context, "menu_icon/verify.png", "Verify Questions", () {
-        Navigator.pushNamed(context, "/questions/verify");
+        Navigator.pushNamed(context, "/questions/verify").then((value) => setState((){}));
       }) : Container(),
     ];
   }
@@ -633,7 +664,7 @@ class _MainMenuState extends State<MainMenu> {
                       ),
                       onPressed: () {
                         vBloc.complexity = "easy";
-                        Navigator.pushNamed(context, "/play");
+                        Navigator.pushNamed(context, "/play").then((value) => setState((){}));
                       }),
                 ),
                 SizedBox(
@@ -666,7 +697,7 @@ class _MainMenuState extends State<MainMenu> {
                       ),
                       onPressed: () {
                         vBloc.complexity = "normal";
-                        Navigator.pushNamed(context, "/play");
+                        Navigator.pushNamed(context, "/play").then((value) => setState((){}));
                       }),
                 ),
                 SizedBox(
@@ -699,7 +730,7 @@ class _MainMenuState extends State<MainMenu> {
                       ),
                       onPressed: () {
                         vBloc.complexity = "hard";
-                        Navigator.pushNamed(context, "/play");
+                        Navigator.pushNamed(context, "/play").then((value) => setState((){}));
                       }),
                 ),
               ],

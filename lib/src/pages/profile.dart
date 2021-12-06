@@ -143,7 +143,7 @@ class _ProfileState extends State<Profile> {
                 color: Theme.of(context).colorScheme.primary,
                 iconSize: 30,
                 onPressed: (){
-                  Navigator.pushNamed(context, "/profile/edit");
+                  Navigator.pushNamed(context, "/profile/edit").then((value) => setState((){}));
                 },
               ),
             ),

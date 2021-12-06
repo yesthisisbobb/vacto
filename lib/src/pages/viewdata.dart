@@ -1,4 +1,9 @@
+import 'dart:typed_data';
+
+import 'package:file_saver/file_saver.dart';
+import 'package:file_saver/file_saver_web.dart';
 import 'package:flutter/material.dart';
+import 'package:csv/csv.dart';
 import 'package:vacto/src/blocs/variables_bloc.dart';
 import 'package:vacto/src/blocs/variables_provider.dart';
 import '../classes/ViewDataModel.dart';
@@ -9,11 +14,13 @@ class ViewDataTableSource extends DataTableSource{
   BuildContext context;
   VariablesBloc vBloc;
   List<ViewDataModel> dataList;
+  List<dynamic> toExportList;
 
   ViewDataTableSource(BuildContext context, VariablesBloc vBloc){
     this.context = context;
     this.vBloc = vBloc;
     dataList = [];
+    toExportList = [];
   }
 
   getDatas() async {
@@ -27,6 +34,7 @@ class ViewDataTableSource extends DataTableSource{
         await temp.fillOutDataFromID(item["Answer id"]);
 
         dataList.add(temp);
+        toExportList.add(item);
       }
 
       return true;
@@ -137,6 +145,13 @@ class _ViewDataState extends State<ViewData> {
   VariablesBloc vBloc;
   ViewDataTableSource dts;
 
+  List<Map<dynamic, dynamic>> ld = [
+    {"asd": 1, "ass": 2},
+    {"asd": 2, "ass": 5},
+    {"asd": 3, "ass": 5},
+    {"asd": 4, "ass": 3}
+  ];
+
   @override
   Widget build(BuildContext context) {
     vBloc = VariablesProvider.of(context);
@@ -217,6 +232,51 @@ class _ViewDataState extends State<ViewData> {
               SizedBox(height: 24.0,),
               SingleChildScrollView(
                 child: dataTable(),
+              ),
+              SizedBox(height: 24.0,),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.green,
+                  padding: EdgeInsets.all(20.0)
+                ),
+                child: Text("Download as csv"),
+                onPressed: () async {
+                  List<List<dynamic>> rows = [];
+                  List<String> row = [];
+
+                  row.add("Answer ID");
+                  row.add("Answer Date");
+                  row.add("News Title");
+                  row.add("User Answer");
+                  row.add("Actual Answer");
+                  row.add("Resulting Score");
+                  row.add("Name");
+                  row.add("Nationality");
+                  row.add("Date of Birth");
+                  row.add("Gender");
+                  rows.add(row);
+
+                  for (var i = 0; i < dts.toExportList.length; i++) {
+                    List<String> row = [];
+                    row.add(dts.toExportList[i]["Answer id"].toString());
+                    row.add(dts.toExportList[i]["Answer Date"].toString());
+                    row.add(dts.toExportList[i]["News Title"].toString());
+                    row.add(dts.toExportList[i]["User Answer"].toString());
+                    row.add(dts.toExportList[i]["Actual Answer"].toString());
+                    row.add(dts.toExportList[i]["Resulting Score"].toString());
+                    row.add(dts.toExportList[i]["Name"].toString());
+                    row.add(dts.toExportList[i]["Nationality"].toString());
+                    row.add(dts.toExportList[i]["Date of Birth"].toString());
+                    row.add(dts.toExportList[i]["Gender"].toString());
+                    rows.add(row);
+                  }
+
+                  String csv = const ListToCsvConverter().convert(rows);
+                  List<int> step1 = csv.codeUnits;
+                  Uint8List bytes = Uint8List.fromList(step1);
+                  // await FileSaver.instance.saveAs("vacto-dataset", bytes, "csv", MimeType.CSV);
+                  await FileSaverWeb().downloadFile(bytes, "vacto-dataset", "text/csv");
+                },
               ),
               SizedBox(height: 60.0,),
             ],

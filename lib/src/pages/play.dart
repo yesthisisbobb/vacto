@@ -396,7 +396,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       var parsedData = json.decode(jsonData);
 
       for (var item in parsedData) {
-        userAchievements.add(item["achievement"]);
+        userAchievements.add(item["aid"]);
       }
       print("User Achievements");
       print(userAchievements);
@@ -516,7 +516,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       );
       if (res.statusCode == 400) print(res.body.toString());
       else{
-        achievementToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("achievements/$timeAchievement.png",height: 20,));
       }
     }
     if (standardGamemodeAchievement != 0) {
@@ -525,7 +525,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           body: {"uid": vBloc.currentUser.id, "aid": standardGamemodeAchievement.toString()});
       if (res.statusCode == 400) print(res.body.toString());
       else {
-        achievementToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("achievements/$standardGamemodeAchievement.png",height: 20,));
       }
     }
     if (timedGamemodeAchievement != 0) {
@@ -534,7 +534,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           body: {"uid": vBloc.currentUser.id, "aid": timedGamemodeAchievement.toString()});
       if (res.statusCode == 400) print(res.body.toString());
       else {
-        achievementToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("achievements/$timedGamemodeAchievement.png",height: 20,));
       }
     }
     if (challengeAchievement != 0) {
@@ -543,7 +543,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           body: {"uid": vBloc.currentUser.id, "aid": challengeAchievement.toString()});
       if (res.statusCode == 400) print(res.body.toString());
       else {
-        achievementToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("achievements/$challengeAchievement.png",height: 20,));
       }
     }
     if (tierUpAchievement != 0) {
@@ -552,7 +552,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           body: {"uid": vBloc.currentUser.id, "aid": tierUpAchievement.toString()});
       if (res.statusCode == 400) print(res.body.toString());
       else {
-        achievementToast(Image.asset("vacto_logo.png",height: 20,));
+        achievementToast(Image.asset("achievements/$tierUpAchievement.png",height: 20,));
       }
     }
 

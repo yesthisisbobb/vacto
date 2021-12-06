@@ -241,7 +241,7 @@ app.get("/api/user/get/:id", async (req, res) => {
 // ------ UPDATE USER ------ //
 app.post("/api/user/update/for/:id", ppuploads.single("picture"), async (req, res) => {
     let id = req.params.id;
-    let picture = (req.file) ? req.file.filename : "default.png";
+    let picture = (req.file) ? req.file.filename : "";
     let username = req.body.unew;
     let currpassword = req.body.pcurr;
     let password = req.body.pnew;
@@ -252,10 +252,12 @@ app.post("/api/user/update/for/:id", ppuploads.single("picture"), async (req, re
     if (username) fields += `username='${username}'`;
     if (username && password) fields += `, `;
     if (password) fields += `password='${password}'`;
+    if (username && picture || password && picture || username && password && picture) fields += `, `;
+    if (picture) fields += `pp='${picture}'`;
     let query = `update user set ${fields} where id='${id}' and password='${currpassword}'`;
     console.log(query);
 
-    if (!username && !password || username == "" && password == ""){
+    if (!username && !password && !picture || username == "" && password == "" && picture == ""){
         console.log("masuk no password dan username");
         return res.status(200).send("No update");
     }
@@ -278,6 +280,19 @@ app.get("/api/user/achievement/get/:id", async (req, res) => {
     let getAchievements = await executeQuery(conn, query);
     if(getAchievements.length < 1) return res.status(400).send("No achievement for this user");
     
+    return res.status(200).send(getAchievements);
+});
+
+// ------ GET PICKED ACHIEVEMENT USER ------ //
+app.get("/api/user/achievement/get/picked/:id", async (req, res) => {
+    let id = req.params.id;
+
+    if (!id) return res.status(400).send("Id is missing");
+
+    let query = `select ua.id as 'uaid', a.id as 'aid', a.name, a.pic, a.description, ua.date, ua.picked from user_achievement ua, achievement a where ua.user='${id}' and ua.achievement = a.id and ua.picked='y'`;
+    let getAchievements = await executeQuery(conn, query);
+    if (getAchievements.length < 1) return res.status(400).send("No achievement for this user");
+
     return res.status(200).send(getAchievements);
 });
 

@@ -141,7 +141,7 @@ class _ProfileEditState extends State<ProfileEdit> {
         print("Masuk 200");
         print(await res.stream.transform(utf8.decoder).join());
 
-        vBloc.currentUser.fillOutDataFromID(vBloc.localS.getItem("id"));
+        await vBloc.currentUser.fillOutDataFromID(vBloc.localS.getItem("id"));
 
         Navigator.pop(context);
       } else {
@@ -231,6 +231,9 @@ class _ProfileEditState extends State<ProfileEdit> {
 
   Widget mainCard(){
     if (vBloc.currentUser.pp != "default.png") profileImage = NetworkImage("http://localhost:3000/images/profile/${vBloc.currentUser.pp}");
+    if (uploadedImage != null) profileImage = MemoryImage(uploadedImage);
+    print("Uploaded Image ===========");
+    print(uploadedImage);
     
     Stack profilePic = Stack(
       children: [
