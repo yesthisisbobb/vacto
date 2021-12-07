@@ -43,6 +43,7 @@ class LoginBloc with Validation{
       errMsgFound(res.body.toString());
     }
     else if(res.statusCode == 200){
+      errMsgFound(null);
       bloc.currentUser = new User();
       await bloc.currentUser.fillOutDataFromID(res.body.toString()); // TODO: This process could be done in a loading screen
 

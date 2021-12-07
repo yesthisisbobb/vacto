@@ -171,7 +171,11 @@ class _VerifyQuestionsState extends State<VerifyQuestions> {
             width: double.infinity,
             height: double.infinity,
             child: SingleChildScrollView(
-              child: dataTable(),
+              scrollDirection: Axis.vertical,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: dataTable(),
+              ),
             ),
           );
         }

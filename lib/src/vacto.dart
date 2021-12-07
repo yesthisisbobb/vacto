@@ -52,7 +52,7 @@ class Vacto extends StatelessWidget {
             ),
             routes: {
               "/": (context) => Login(),
-              // "/": (context) => PaintingGround(),
+              // "/": (context) => RegisterSuccess(),
               "/login": (context) => Login(),
               "/register": (context) => Register(),
               "/register/success": (context) =>RegisterSuccess(),

@@ -4,7 +4,9 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:soundpool/soundpool.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -19,6 +21,8 @@ class Play extends StatefulWidget {
 }
 
 class _PlayState extends State<Play> with TickerProviderStateMixin{
+  Soundpool pool = Soundpool(streamType: StreamType.notification);
+
   VariablesBloc vBloc;
   bool isRatingAndTierFilled = false;
   int currentRating = 0;
@@ -62,6 +66,20 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
 
   Animation<Offset> swipeRightCardAnimation;
   Animation<Offset> swipeLeftCardAnimation;
+
+  playSwipeSound() async {
+    int soundId = await rootBundle.load("sfx/swipe.mp3").then((value) {
+      return pool.load(value);
+    });
+    int streamId = await pool.play(soundId);
+  }
+
+  playGameOverSound() async {
+    int soundId = await rootBundle.load("sfx/game_over.mp3").then((value) {
+      return pool.load(value);
+    });
+    int streamId = await pool.play(soundId);
+  }
 
   @override
   void initState() {
@@ -562,6 +580,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
   gameOverProccess() async {
     // Perhitungan game over screen
     if (isGameOver == true) {
+      playGameOverSound();
       if(vBloc.isGameModeChallenge == true && vBloc.isChallenged == false &&
           isChallengeCancelled == false){
         await uploadChallenge();
@@ -1041,6 +1060,7 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
           iconSize: 40.0,
           color: Colors.white,
           onPressed: (){
+            playSwipeSound();
             Scaffold.of(context).openEndDrawer();
           },
         )
@@ -1812,7 +1832,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             highlightColor: Colors.red[50],
             splashColor: Colors.red[200],
             color: Colors.red,
-            onPressed: () {
+            onPressed: () async {
+              playSwipeSound();
               if (isGameOver == false) {
                 validateAnswer(vBloc.CARD_SWIPE_LEFT);
                 vBloc.addCardDirection(vBloc.CARD_SWIPE_LEFT);
@@ -1862,7 +1883,8 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
             highlightColor: Colors.green[100],
             splashColor: Colors.green[200],
             color: Theme.of(context).colorScheme.secondary,
-            onPressed: () {
+            onPressed: () async {
+              playSwipeSound();
               if (isGameOver == false) {
                 validateAnswer(vBloc.CARD_SWIPE_RIGHT);
                 vBloc.addCardDirection(vBloc.CARD_SWIPE_RIGHT);

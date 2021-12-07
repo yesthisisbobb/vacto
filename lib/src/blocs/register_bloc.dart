@@ -110,6 +110,7 @@ class RegisterBloc with Validation{
         if (res.statusCode == 400) {
           addError(res.body.toString());
         } else if (res.statusCode == 200) {
+          addError(null);
           Navigator.pushNamed(context, "/register/success");
         }
       }

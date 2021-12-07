@@ -2,6 +2,7 @@ import 'dart:js';
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:vacto/src/blocs/login_bloc.dart';
@@ -9,6 +10,7 @@ import 'package:vacto/src/blocs/login_provider.dart';
 import 'package:vacto/src/classes/Feed.dart';
 import 'package:vacto/src/classes/User.dart';
 import 'package:vacto/src/pages/loadingscreen.dart';
+import 'package:soundpool/soundpool.dart';
 
 import '../blocs/variables_provider.dart';
 
@@ -20,6 +22,7 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
+  Soundpool pool = Soundpool.fromOptions(options: SoundpoolOptions(streamType: StreamType.notification));
   VariablesBloc vBloc;
   LoginBloc lBloc;
   List<Feed> feeds;
@@ -45,6 +48,13 @@ class _MainMenuState extends State<MainMenu> {
     }
     print("ACHIEVEMENT GAMASUK 200");
     return false;
+  }
+
+  playClickSound() async {
+    int soundId = await rootBundle.load("sfx/menu_click.mp3").then((value) {
+      return pool.load(value);
+    });
+    int streamId = await pool.play(soundId);
   }
 
   @override
@@ -274,7 +284,8 @@ class _MainMenuState extends State<MainMenu> {
                       Icon(Icons.logout),
                     ],
                   ),
-                  onPressed: () {
+                  onPressed: () async {            
+                    playClickSound();
                     lBloc.errMsgFound(null);
 
                     vBloc.currentUser = null;
@@ -463,7 +474,8 @@ class _MainMenuState extends State<MainMenu> {
 
   List<Widget> menus(BuildContext context) {
     return [
-      menuItem(context, "menu_icon/play.png", "Play", () {
+      menuItem(context, "menu_icon/play.png", "Play", () async {
+        playClickSound();
         showModalBottomSheet(
             context: context,
             shape: RoundedRectangleBorder(
@@ -501,7 +513,9 @@ class _MainMenuState extends State<MainMenu> {
                                           "menu_icon/gamemode-normal.png",
                                           fit: BoxFit.cover,
                                         ),
-                                        onPressed: () {
+                                        onPressed: () async {
+                                          playClickSound();
+
                                           vBloc.isGameModeTimed = false;
                                           showModalBottomSheet(
                                               context: context,
@@ -548,7 +562,9 @@ class _MainMenuState extends State<MainMenu> {
                                           "menu_icon/gamemode-timed.png",
                                           fit: BoxFit.cover,
                                         ),
-                                        onPressed: () {
+                                        onPressed: () async {
+                                          playClickSound();
+
                                           vBloc.isGameModeTimed = true;
                                           print(vBloc.isGameModeTimed);
                                           showModalBottomSheet(
@@ -592,25 +608,32 @@ class _MainMenuState extends State<MainMenu> {
               );
             });
       }),
-      menuItem(context, "menu_icon/challenge.png", "Challenge Another Player", () {
+      menuItem(context, "menu_icon/challenge.png", "Challenge Another Player", () async {
+        playClickSound();
         Navigator.pushNamed(context, "/challenge").then((value) => setState((){}));
       }),
-      menuItem(context, "menu_icon/add.png", "Add News", () {
+      menuItem(context, "menu_icon/add.png", "Add News", () async {
+        playClickSound();
         Navigator.pushNamed(context, "/add").then((value) => setState(() {}));
       }),
-      menuItem(context, "menu_icon/leaderboard.png", "Leaderboard", () {
+      menuItem(context, "menu_icon/leaderboard.png", "Leaderboard", () async {
+        playClickSound();
         Navigator.pushNamed(context, "/leaderboard").then((value) => setState((){}));
       }),
-      menuItem(context, "menu_icon/profile.png", "Profile", () {
+      menuItem(context, "menu_icon/profile.png", "Profile", () async {
+        playClickSound();
         Navigator.pushNamed(context, "/profile").then((value) => setState((){}));
       }),
-      menuItem(context, "menu_icon/settings.png", "Settings", () {
-        print("setting");
-      }),
-      (vBloc.currentUser.role != "n") ? menuItem(context, "menu_icon/view-data.png", "View Data", () {
+      // menuItem(context, "menu_icon/settings.png", "Settings", () async {
+      //   playClickSound();
+      //   print("setting");
+      // }),
+      (vBloc.currentUser.role != "n") ? menuItem(context, "menu_icon/view-data.png", "View Data", () async {
+        playClickSound();
         Navigator.pushNamed(context, "/data/view").then((value) => setState((){}));
       }) : Container(),
-      (vBloc.currentUser.role == "a") ? menuItem(context, "menu_icon/verify.png", "Verify Questions", () {
+      (vBloc.currentUser.role == "a") ? menuItem(context, "menu_icon/verify.png", "Verify Questions", () async {
+        playClickSound();
         Navigator.pushNamed(context, "/questions/verify").then((value) => setState((){}));
       }) : Container(),
     ];
@@ -663,6 +686,7 @@ class _MainMenuState extends State<MainMenu> {
                         ),
                       ),
                       onPressed: () {
+                        playClickSound();
                         vBloc.complexity = "easy";
                         Navigator.pushNamed(context, "/play").then((value) => setState((){}));
                       }),
@@ -696,6 +720,7 @@ class _MainMenuState extends State<MainMenu> {
                         ),
                       ),
                       onPressed: () {
+                        playClickSound();
                         vBloc.complexity = "normal";
                         Navigator.pushNamed(context, "/play").then((value) => setState((){}));
                       }),
@@ -728,7 +753,9 @@ class _MainMenuState extends State<MainMenu> {
                           ],
                         ),
                       ),
-                      onPressed: () {
+                      onPressed: () async {
+                        playClickSound();
+                        
                         vBloc.complexity = "hard";
                         Navigator.pushNamed(context, "/play").then((value) => setState((){}));
                       }),
