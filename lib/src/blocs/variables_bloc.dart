@@ -27,6 +27,8 @@ class VariablesBloc{
   String opponentId = "";
   int challengeId = 0;
 
+  String viewDataDatatype = "normal";
+
   // bool isGameModeChallenge = true;
   // bool isChallenged = true;
   // String opponentId = "1103003";
