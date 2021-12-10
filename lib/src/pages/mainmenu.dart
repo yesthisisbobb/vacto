@@ -11,6 +11,7 @@ import 'package:vacto/src/classes/Feed.dart';
 import 'package:vacto/src/classes/User.dart';
 import 'package:vacto/src/pages/loadingscreen.dart';
 import 'package:soundpool/soundpool.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../blocs/variables_provider.dart';
 
@@ -55,6 +56,25 @@ class _MainMenuState extends State<MainMenu> {
       return pool.load(value);
     });
     int streamId = await pool.play(soundId);
+  }
+
+  openURL(String aid) async {
+    var res = await http.get(Uri.parse("http://localhost:3000/api/user/achievement/get/${vBloc.currentUser.id}"));
+    if(res.statusCode == 200){
+      print("Masuk openURL");
+      var jsonData = res.body.toString();
+      var parsedData = json.decode(jsonData);
+
+      for (var item in parsedData) {
+        if(item["aid"].toString() == aid){
+          String text = "I just got '${item["name"]}' on Vacto!";
+          Uri uri = Uri.dataFromString("https://twitter.com/intent/tweet?text=$text");
+          String url = uri.query;
+          print(url);
+          launch("https://twitter.com/intent/tweet?$url");
+        }
+      }
+    }
   }
 
   @override
@@ -243,9 +263,14 @@ class _MainMenuState extends State<MainMenu> {
                         List<Widget> imgs = [];
 
                         for (var i = 0; i < achievementIds.length; i++) {
-                          imgs.add(Image.asset(
-                            "achievements/${achievementIds[i]}.png",
-                            height: 34,
+                          imgs.add(InkWell(
+                            child: Image.asset(
+                              "achievements/${achievementIds[i]}.png",
+                              height: 34,
+                            ),
+                            onTap: (){
+                              openURL(achievementIds[i]);
+                            },
                           ));
                           if (i < achievementIds.length - 1) imgs.add(SizedBox(width: 8.0,),);
                         }
