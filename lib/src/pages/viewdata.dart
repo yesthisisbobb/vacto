@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:file_saver/file_saver.dart';
 import 'package:file_saver/file_saver_web.dart';
 import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
@@ -35,7 +34,7 @@ class ViewDataTableSource extends DataTableSource{
 
       for (var item in parsedJson) {
         ViewDataModel temp = new ViewDataModel();
-        await temp.fillOutDataFromID(item["Answer id"]);
+        await temp.fillOutDataFromID(item["Answer id"], item["News id"], item["Tags"]);
 
         dataList.add(temp);
         toExportList.add(item);
@@ -59,6 +58,7 @@ class ViewDataTableSource extends DataTableSource{
 
         if (ntTemp != "")
         labels.add({
+          "News Tags": dataList[i].tags,
           "News Title": ntTemp,
           "Actual Answer": dataList[i].aa,
           "Hoax answer total": hoaxCtr,
@@ -78,7 +78,7 @@ class ViewDataTableSource extends DataTableSource{
 
   @override
   DataRow getRow(int index) {
-    // String adText = "${dataList[index].ad.day}-${dataList[index].ad.month}-${dataList[index].ad.year} ${dataList[index].ad.hour}:${dataList[index].ad.minute}:${dataList[index].ad.second}";
+    String adText = "${dataList[index].ad.day}-${dataList[index].ad.month}-${dataList[index].ad.year} ${dataList[index].ad.hour}:${dataList[index].ad.minute}:${dataList[index].ad.second}";
     String rsText = "+${dataList[index].rs.toString()}";
     if (dataList[index].ua != dataList[index].aa) {
       rsText = "-${dataList[index].rs.toString()}";
@@ -89,13 +89,25 @@ class ViewDataTableSource extends DataTableSource{
       if(dataList.length > 0){
         return DataRow(cells: [
           DataCell(
-            Text(dataList[index].aid.toString()),
+            Container(
+              width: 60,
+              child: Text(dataList[index].nid.toString()),
+            ),
           ),
           DataCell(
-            Text(dataList[index].ad.toString()),
+            Text(adText),
           ),
           DataCell(
-            Text(dataList[index].nt.toString()),
+            Container(
+              width: 120,
+              child: Text(dataList[index].tags.toString()),
+            ),
+          ),
+          DataCell(
+            Container(
+              width: 600,
+              child: Text(dataList[index].nt.toString()),
+            ),
           ),
           DataCell(
             Text(dataList[index].ua.toString()),
@@ -152,6 +164,9 @@ class ViewDataTableSource extends DataTableSource{
           DataCell(
             Text(""),
           ),
+          DataCell(
+            Text(""),
+          ),
         ]);
       }
     }
@@ -166,7 +181,16 @@ class ViewDataTableSource extends DataTableSource{
         // });
         return DataRow(cells: [
           DataCell(
-            Text(labels[index]["News Title"].toString()),
+            Container(
+              width: 120,
+              child: Text(labels[index]["News Tags"].toString()),
+            ),
+          ),
+          DataCell(
+            Container(
+              width: 600,
+              child: Text(labels[index]["News Title"].toString()),
+            ),
           ),
           DataCell(
             Text(labels[index]["Actual Answer"].toString()),
@@ -184,6 +208,9 @@ class ViewDataTableSource extends DataTableSource{
       }
       else{
         return DataRow(cells: [
+          DataCell(
+            Text(""),
+          ),
           DataCell(
             Text(""),
           ),
@@ -377,8 +404,9 @@ class _ViewDataState extends State<ViewData> {
                   List<String> row = [];
 
                   if (vBloc.viewDataDatatype == "normal"){
-                    row.add("Answer ID");
+                    row.add("News ID");
                     row.add("Answer Date");
+                    row.add("News Tags");
                     row.add("News Title");
                     row.add("User Answer");
                     row.add("Actual Answer");
@@ -391,13 +419,13 @@ class _ViewDataState extends State<ViewData> {
 
                     for (var i = 0; i < dts.toExportList.length; i++) {
                       List<String> row = [];
-                      row.add(dts.toExportList[i]["Answer id"].toString());
+                      row.add(dts.toExportList[i]["News id"].toString());
                       row.add(dts.toExportList[i]["Answer Date"].toString());
+                      row.add(dts.toExportList[i]["Tags"].toString());
                       row.add(dts.toExportList[i]["News Title"].toString());
                       row.add(dts.toExportList[i]["User Answer"].toString());
                       row.add(dts.toExportList[i]["Actual Answer"].toString());
-                      row.add(
-                          dts.toExportList[i]["Resulting Score"].toString());
+                      row.add(dts.toExportList[i]["Resulting Score"].toString());
                       row.add(dts.toExportList[i]["Name"].toString());
                       row.add(dts.toExportList[i]["Nationality"].toString());
                       row.add(dts.toExportList[i]["Date of Birth"].toString());
@@ -406,6 +434,7 @@ class _ViewDataState extends State<ViewData> {
                     }
                   }
                   else{
+                    row.add("News Tags");
                     row.add("News Title");
                     row.add("Actual Answer");
                     row.add("Hoax answer total");
@@ -415,6 +444,7 @@ class _ViewDataState extends State<ViewData> {
 
                     for (var i = 0; i < dts.labels.length; i++) {
                       List<String> row = [];
+                      row.add(dts.labels[i]["News Tags"].toString());
                       row.add(dts.labels[i]["News Title"].toString());
                       row.add(dts.labels[i]["Actual Answer"].toString());
                       row.add(dts.labels[i]["Hoax answer total"].toString());
@@ -446,13 +476,19 @@ class _ViewDataState extends State<ViewData> {
         DataColumn(
             label: Expanded(
           child: Center(
-            child: Text("Answer ID"),
+            child: Text("News ID"),
           ),
         )),
         DataColumn(
             label: Expanded(
           child: Center(
             child: Text("Answer Date"),
+          ),
+        )),
+        DataColumn(
+          label: Expanded(
+          child: Center(
+            child: Text("News Tags"),
           ),
         )),
         DataColumn(
@@ -507,6 +543,12 @@ class _ViewDataState extends State<ViewData> {
     }
     else{
       dataColumns = [
+        DataColumn(
+            label: Expanded(
+          child: Center(
+            child: Text("News Tags"),
+          ),
+        )),
         DataColumn(
             label: Expanded(
           child: Center(

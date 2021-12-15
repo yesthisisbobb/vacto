@@ -631,7 +631,7 @@ app.get("/api/news/generate/:num", async (req, res) => {
     return res.status(200).send(getGeneratedNews);
 });
 
-// ------ GET NEWS TAGS ------ //
+// ------ GET TAGS ------ //
 app.get("/api/news/tags", async (req, res) => {
     let query = `select * from tags`;
     let getTags = await executeQuery(conn, query);
@@ -823,12 +823,61 @@ app.get("/api/answer/get/formatted/:id", async (req, res) => {
 app.get("/api/answer/get/formatted/all/all", async (req, res) => {
     console.log("WENT HERE --------");
 
-    let query = `select ua.id as "Answer id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth", u.gender as "Gender" from user u, user_answer ua, news n where ua.user = u.id and ua.news = n.id`;
+    let query = `select ua.id as "Answer id", ua.news as "News id", ua.date_answered as "Answer Date", n.title as "News Title", ua.answer as "User Answer", n.answer as "Actual Answer", ua.score as "Resulting Score", ua.reasoning as "Reasoning", u.name as "Name", u.nationality as "Nationality", u.dob as "Date of Birth", u.gender as "Gender" from user u, user_answer ua, news n where ua.user = u.id and ua.news = n.id ORDER BY n.title`;
     console.log(query);
     let getAllAnswers = await executeQuery(conn, query);
     if (getAllAnswers.length < 1) return res.status(500).send("Answers retrieval failed");
 
-    return res.status(200).send(getAllAnswers);
+    let result = [];
+    for (let j = 0; j < getAllAnswers.length; j++) {
+        let item = getAllAnswers[j];
+
+        let aid = item["Answer id"];
+        let nid = item["News id"];
+        let ad = item["Answer Date"];
+        let nt = item["News Title"];
+        let ua = item["User Answer"];
+        let aa = item["Actual Answer"];
+        let rs = item["Resulting Score"];
+        let r = item["Reasoning"];
+        let n = item["Name"];
+        let na = item["Nationality"];
+        let dob = item["Date of Birth"];
+        let g = item["Gender"];
+        let tags = "";
+
+        query = `select t.tag as tag from news_tag nt, tags t where nt.tag = t.id and news = '${nid}'`;
+        let getTags = await executeQuery(conn, query);
+        if(getTags.length > 0){
+            for (let i = 0; i < getTags.length; i++) {
+                let element = getTags[i];
+                if(i < getTags.length - 1){
+                    tags += element["tag"] + ",";
+                }
+                else{
+                    tags += element["tag"];
+                }
+            }
+        }
+
+        result.push({
+            "Answer id": aid,
+            "News id": nid,
+            "Answer Date": ad,
+            "News Title": nt,
+            "User Answer": ua,
+            "Actual Answer": aa,
+            "Resulting Score": rs,
+            "Reasoning": r,
+            "Name": n,
+            "Nationality": na,
+            "Date of Birth": dob,
+            "Gender": g,
+            "Tags": tags
+        });
+    }
+
+    return res.status(200).send(result);
 });
 
 // GET ALL ANSWERS FOR A USER

@@ -165,7 +165,15 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       print("bener hoax");
 
       if (news[currentRound - 1].type == "or") {
-        recentScorePoint = Random().nextInt(6) + 5;
+        if(vBloc.complexity == "hard"){
+          recentScorePoint = 15;
+        }
+        else if (vBloc.complexity == "normal") {
+          recentScorePoint = 10;
+        }
+        else{
+          recentScorePoint = 5;
+        }
       } else if(news[currentRound - 1].type == "uc"){
         recentScorePoint = Random().nextInt(4) + 1;
       }
@@ -182,7 +190,13 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       print("bener legit");
       
       if (news[currentRound - 1].type == "or") {
-        recentScorePoint = Random().nextInt(6) + 5;
+        if (vBloc.complexity == "hard") {
+          recentScorePoint = 15;
+        } else if (vBloc.complexity == "normal") {
+          recentScorePoint = 10;
+        } else {
+          recentScorePoint = 5;
+        }
       } else if (news[currentRound - 1].type == "uc") {
         recentScorePoint = Random().nextInt(4) + 1;
       }
@@ -199,7 +213,13 @@ class _PlayState extends State<Play> with TickerProviderStateMixin{
       print("salah");
 
       if (news[currentRound - 1].type == "or") {
-        recentScorePoint = Random().nextInt(6) + 2;
+        if (vBloc.complexity == "hard") {
+          recentScorePoint = 7;
+        } else if (vBloc.complexity == "normal") {
+          recentScorePoint = 5;
+        } else {
+          recentScorePoint = 2;
+        }
       } else if (news[currentRound - 1].type == "uc") {
         recentScorePoint = Random().nextInt(4) + 1;
       }

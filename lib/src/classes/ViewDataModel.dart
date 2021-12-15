@@ -3,6 +3,7 @@ import 'dart:convert';
 
 class ViewDataModel{
   int aid;
+  int nid;
   DateTime ad;
   String nt;
   String ua;
@@ -12,11 +13,14 @@ class ViewDataModel{
   String nat;
   DateTime dob;
   String gender;
+  String tags;
 
   ViewDataModel();
 
-  fillOutDataFromID(int aid) async {
+  fillOutDataFromID(int aid, int nid, String tags) async {
     this.aid = aid;
+    this.nid = nid;
+    this.tags = tags;
 
     var res = await http.get(Uri.parse("http://localhost:3000/api/answer/get/formatted/$aid"));
     if(res.statusCode == 200){
